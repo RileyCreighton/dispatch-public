@@ -10,5 +10,6 @@
     "@dispatch/security": "0.0.0",
     "@dispatch/payments": "0.0.0",
     "@dispatch/domain": "0.0.0"
-  }
+  },
+  "license": "Apache-2.0"
 }

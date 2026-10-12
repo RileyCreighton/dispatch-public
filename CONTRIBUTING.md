@@ -1,6 +1,6 @@
 # Contributing
 
-Dispatch is an experimental developer preview. Public contribution and licensing terms remain owner-pending. Keep examples synthetic; do not submit keys, bearer grants, database dumps or private runtime logs.
+Dispatch is an experimental developer preview. Contributions are welcome under the [Apache License, Version 2.0](LICENSE). By intentionally submitting a contribution, you offer it under those terms unless you explicitly state otherwise. Keep examples synthetic; do not submit keys, bearer grants, database dumps or private runtime logs.
 
 Use the pinned Node/npm versions and both lockfiles. Install/build with the [getting-started instructions](docs/getting-started.md). PostgreSQL 17, Python validator packages, Chromium and NSS tools are needed for the full suite. `scripts/install-local-tools.py <new-private-directory>` optionally provisions pinned Node/PostgreSQL tools without changing system packages; building PostgreSQL requires an existing compiler and make.
 
@@ -30,6 +30,6 @@ Keep TypeScript strict and SQL parameterized. Preserve immutable migrations, dur
 
 A pull request should state the concrete behavior change, reproduction, exact commands/results and limitations. Security-sensitive changes need fresh independent review. Local functional checks, browser fixtures, real wallets, container checks, advisory assessments and production tests are distinct categories. Remote CI is unrun until GitHub actually executes it. See [SECURITY](SECURITY.md) for disclosure and release restrictions.
 
-The 23 security-evidence binding controls use explicit synthetic records. They test exact hashes, stage/image bindings, direct advisory aliases and rejection of contradictory package evidence. They never attest that an actual image is unaffected. Detailed occurrence assessment and image/build scanning remain separate required security work; the source candidate carries no private disposition ledger or vulnerability waivers.
+The 23 security-evidence binding controls use explicit synthetic records. They test exact hashes, stage/image bindings, direct advisory aliases and rejection of contradictory package evidence. They never attest that an actual image is unaffected. Detailed occurrence assessment and image/build scanning remain separate required security work; local fixture checks do not grant vulnerability exceptions.
 
 Migration bytes and regression selector identifiers are compatibility inputs. Preserve their checksum and selection contracts; their historical labels do not assert release qualification.

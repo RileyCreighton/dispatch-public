@@ -10,5 +10,6 @@
   },
   "overrides": {
     "tmp": "0.2.7"
-  }
+  },
+  "license": "Apache-2.0"
 }

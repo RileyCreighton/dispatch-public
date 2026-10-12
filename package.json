@@ -43,5 +43,6 @@
     "@types/pg": "8.23.1",
     "playwright": "1.64.0",
     "@axe-core/playwright": "4.13.0"
-  }
+  },
+  "license": "Apache-2.0"
 }

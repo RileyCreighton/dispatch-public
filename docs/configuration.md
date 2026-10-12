@@ -1,6 +1,6 @@
 # Configuration
 
-This candidate deliberately provides a local-only composition. It does not load a `.env` file, accept production database/RPC URLs, or enable mainnet through an environment switch. `.env.example` documents optional nonsecret developer tool settings; it is not a deployment template.
+This preview provides a local-only composition. It does not load a `.env` file, accept production database/RPC URLs, or enable mainnet through an environment switch. `.env.example` documents optional nonsecret developer tool settings; it is not a deployment template.
 
 ## Merchant configuration
 
@@ -32,4 +32,4 @@ Container-local `DISPATCH_MODE=local`, `DISPATCH_RUNTIME=digital-fixture` and `D
 
 ## Future deployment
 
-Production has no supported enablement recipe in this candidate. A separately reviewed composition must qualify actual Base/native USDC, provider authentication, RPC, real wallet integration, public TLS/ingress, scoped secret delivery, key custody, backups/recovery, security and operations. Secrets must be provisioned separately from source and image layers. Do not mount a production `.env`, wallet, key directory or database into the demo.
+Production has no supported enablement recipe in this preview. A separately reviewed composition must qualify actual Base/native USDC, provider authentication, RPC, real wallet integration, public TLS/ingress, scoped secret delivery, key custody, backups/recovery, security and operations. Secrets must be provisioned separately from source and image layers. Do not mount a production `.env`, wallet, key directory or database into the demo.

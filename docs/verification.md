@@ -2,7 +2,7 @@
 
 The native developer walkthrough tests actual PostgreSQL, the API, Chromium, a non-forked local EVM, the maintained upstream x402 client and worker functions with a generated facilitator fixture. It checks two distinct transactions, one authorization and signed submission per buyer, exact private bytes, unauthorized-download denial, same-purchase recovery and ordinary checkout during a real API outage.
 
-The export is prepared for fresh independent review. Local execution does not establish independent acceptance, a security audit, production readiness or real named-wallet compatibility.
+Local execution does not establish a security audit, production readiness or real named-wallet compatibility.
 
 ## Reproduce the checks
 
@@ -18,4 +18,4 @@ Use [Contributing](../CONTRIBUTING.md) for locked installation, root/web compila
 - **Live systems: not run.** Real wallets, Base/native USDC, authenticated live facilitators, production TLS/ingress, secrets, monitoring and disaster recovery require separate qualification.
 - **Mainnet money acceptance: disabled and NO-GO.** Synthetic local settlement is not a money-moving production demonstration.
 
-Keep failures and diagnostics private, and preserve exact source identities when reporting results. Source licensing and public visibility require owner decisions independently of these functional checks.
+Keep failures and diagnostics private, and preserve exact source identities when reporting results.

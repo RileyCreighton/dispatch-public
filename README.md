@@ -24,7 +24,7 @@ Physical ordering and the future RPC gateway are not implemented. This preview d
 
 Supported host: **Linux x86_64**, **Node 24.21.0 / npm 11.19.0**, **Python 3.12+**, **PostgreSQL 17** (17.11 tested), OpenSSL, NSS `certutil` and Chromium's host libraries. Keep at least **2 GiB free in the checkout filesystem** and **512 MiB in `/tmp`**. Set `DISPATCH_TEST_PG_BIN` if PostgreSQL's binaries are not on PATH. [Prerequisite setup](docs/getting-started.md).
 
-From an authorized checkout of this repository:
+Clone the repository and run:
 
 ```sh
 git clone https://github.com/RileyCreighton/dispatch-public.git
@@ -106,4 +106,4 @@ The retained container tools are **not qualified** for this source revision. The
 
 ## License
 
-**A public-source license has not yet been granted.** Apache-2.0 is the proposed license, pending owner approval and final attribution review. [LICENSE](LICENSE) states the current status; [NOTICE](NOTICE), [third-party notices](THIRD_PARTY_NOTICES.md) and the [licensing proposal](licenses/README.md) preserve upstream terms. Public visibility requires a separate owner decision after independent export review.
+Copyright 2026 Riley Creighton. Licensed under the [Apache License, Version 2.0](LICENSE). See [NOTICE](NOTICE) and [third-party notices](THIRD_PARTY_NOTICES.md) for attribution and dependency terms.
