@@ -1,0 +1,4408 @@
+openapi: 3.1.0
+info:
+  title: Dispatch v0.2 proposed application and reference adapter API
+  version: 0.2.0
+  description: 'Architecture contract only; no implemented server. SDK x402 envelope
+    types remain upstream-owned. All private responses are Cache-Control: private,
+    no-store. All errors are redacted Error objects. Browser cookie mutations require
+    exact Origin and CSRF; operator routes are private-network only. Secret mounts
+    and mainnet enablement have no HTTP API. Operator mutations with Idempotency-Key
+    use operator_command_records keyed by single merchant, operationId and key hash,
+    independent of buyer order scopes. Authenticate and check Origin/CSRF/current
+    permissions on every replay. Under merchant_control lock, look up the normalized
+    fingerprint (method, operationId, path IDs, body including its expected-version field)
+    before stale-version checks. Equal fingerprint returns the original committed
+    status/body; mismatch is 409 IDEMPOTENCY_CONFLICT. Commit mutation, audit and
+    immutable command result together; no cache TTL deletion or dummy order.
+    Idempotency-Replayed is required on successful keyed operator responses. A true
+    value never authorizes another wallet prompt, even when the stored result says
+    sign_once. Mutable current state is fetched separately. Reauth has no durable
+    command key and verifies the password again on every call.'
+servers:
+- url: https://pay.dispatch.invalid
+  description: Placeholder; no public deployment
+paths:
+  /health/live:
+    get:
+      operationId: liveness
+      summary: Coarse process liveness
+      description: Coarse process liveness
+      security: &id001 []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  alive: &id002
+                    type: boolean
+                required:
+                - alive
+        '400': &id003
+          $ref: '#/components/responses/BadRequest'
+        '404': &id004
+          $ref: '#/components/responses/NotFound'
+        '409': &id005
+          $ref: '#/components/responses/Conflict'
+        '422': &id006
+          $ref: '#/components/responses/Unprocessable'
+        '429': &id007
+          $ref: '#/components/responses/RateLimited'
+        '503': &id008
+          $ref: '#/components/responses/Unavailable'
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /health/ready:
+    get:
+      operationId: readinessPublic
+      summary: Coarse readiness without dependency details
+      description: Coarse readiness without dependency details
+      security: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  ready: *id002
+                required:
+                - ready
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/catalog:
+    get:
+      operationId: listCatalog
+      summary: Sanitized catalog; indicative prices only
+      description: Sanitized catalog; indicative prices only
+      security: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/catalog/{product_id}:
+    get:
+      operationId: getProduct
+      summary: Public product metadata
+      description: Public product metadata
+      security: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema: &id009
+          type: string
+          format: uuid
+  /buy/{product_id}:
+    get:
+      operationId: humanCheckout
+      summary: Render checkout; never prompts wallet or reserves stock
+      description: Render checkout; never prompts wallet or reserves stock
+      security: *id001
+      responses:
+        '200':
+          description: Human application document
+          content:
+            text/html:
+              schema:
+                type: string
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema: *id009
+  /v1/checkouts:
+    post:
+      operationId: createCheckout
+      parameters:
+      - name: X-Dispatch-Intent
+        in: header
+        required: false
+        schema: {const: checkout}
+        description: Required for client_kind=browser. Bootstrap requires exact Origin and application/json; established cookies also require X-CSRF-Token.
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema: {type: string}
+        description: Required when adding an order to an established browser cookie session.
+      summary: Create unpaid order and recovery authority
+      description: Rate-limited bootstrap. Browser requires exact Origin and JSON
+        content type, gets Secure HttpOnly host-only cookie. Agent gets bearer once
+        in body. No payment until successful authenticated status read confirms grant.
+        Creation response loss may leave only an abandoned unpaid order. Return
+        required policy_version and policy_urls from the saved orders.config_id,
+        before any quote. Product policy_version must equal that config policy;
+        incompatible publication blocks creation with NOT_READY. Policy URLs identify
+        immutable versioned public policy content, never an operator-only resource.
+      security: *id001
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutCreated'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: 'Browser only: __Host-dispatch_buyer; Secure; HttpOnly;
+                SameSite=Lax; Path=/. Never Domain attribute.'
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutCreate'
+  /v1/checkouts/{id}:
+    get:
+      operationId: checkoutStatus
+      summary: Private durable status; confirms grant possession
+      description: Exact order grant required. Never lookup private status by tx hash.
+        No automatic new quote/signature on pending or settled. Cache-Control private,
+        no-store. Always return the order-bound policy_version and policy_urls, including
+        draft status with no Quote. GET is passive and never changes the config binding.
+      security: &id010
+      - buyerBearer: []
+      - buyerCookie: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutStatus'
+        '400': *id003
+        '401': &id011
+          $ref: '#/components/responses/Unauthorized'
+        '403': &id012
+          $ref: '#/components/responses/Forbidden'
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+  /v1/checkouts/{id}/quote:
+    post:
+      operationId: quoteCheckout
+      summary: Authoritative immutable quote
+      description: Confirmed grant required. No buyer amounts/payee accepted. New-payment
+        pause, unknown tax or hidden physical prerequisites block. An unresolved attempt
+        cannot be requoted. QuoteInput.policy_version must echo the version in
+        CheckoutCreated or authenticated CheckoutStatus. Mismatch returns 409
+        STALE_POLICY with next_action=review_policy; reread status and reconfirm.
+        Under merchant_control then order locks, a draft with no issued quote whose
+        bound policy differs from current config returns 409 STALE_POLICY with
+        next_action=create_checkout. No quote, reservation or payment is created;
+        explicitly abandon that unpaid draft and create/confirm a fresh checkout
+        with a compatible published product, then review the newly returned policies.
+        Issued quotes retain original policy URLs/version, payee and hash and are
+        honored until their existing expiry, subject to pause/readiness guards.
+        Requoting an expired unsubmitted order under a changed policy also requires
+        a fresh checkout. Unresolved or paid attempts take precedence over stale-policy
+        guidance and return existing status/conflict, never create_checkout or sign_once.
+      security: *id010
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409':
+          description: STALE_POLICY requires explicit policy review or a fresh unpaid
+            checkout as described above; payment conflicts never invite another signature.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteInput'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required with browser cookie authentication plus exact Origin;
+          not needed for bearer-only agents. No cross-origin cookie fallback.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+  /v1/checkouts/{id}/pay:
+    post:
+      operationId: payCheckout
+      summary: SDK challenge or durable payment command
+      description: 'Authenticate before SDK parsing. No proof: 402 only for valid
+        unpaid quote. Proof: bind exact authorization and enqueue before relay. Pending/paid
+        retries never emit fresh 402. 202 is Dispatch commerce status, not an invented
+        x402 pending envelope. Success header optional only when a real recorded SDK
+        settlement response is independently corroborated. Proof-free 402 does not
+        consume the financial idempotency record; the signed retry reuses the key,
+        and only signed binding fixes payload digest. Recheck payment pause before
+        every new settle call, including the bounded identical retry.'
+      security: *id010
+      responses:
+        '202':
+          description: Submission or fulfillment pending
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutStatus'
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                pattern: ^[0-9]+$
+            Location:
+              schema:
+                type: string
+              description: Authenticated same-origin status path, no credential.
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '200':
+          description: Existing verified payment/result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutStatus'
+          headers:
+            PAYMENT-RESPONSE:
+              schema:
+                type: string
+              description: Optional encodePaymentResponseHeader of real corroborated
+                SDK SettleResponse; omitted if no upstream response exists.
+        '402':
+          description: Valid unpaid SDK challenge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SDKPaymentRequired'
+          headers:
+            PAYMENT-REQUIRED:
+              schema:
+                type: string
+              description: encodePaymentRequiredHeader(PaymentRequired), exact same
+                challenge as body.
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayRequest'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required with browser cookie authentication plus exact Origin;
+          not needed for bearer-only agents. No cross-origin cookie fallback.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+      - name: PAYMENT-SIGNATURE
+        in: header
+        required: false
+        schema:
+          type: string
+          maxLength: 16384
+        description: SDK-owned base64 PaymentPayload v2; decodePaymentSignatureHeader
+          then upstream schema plus Dispatch quote/signature validation. Signature
+          never grants order access.
+        x-sdk-type: '@x402/core/types.PaymentPayload'
+  /v1/checkouts/{id}/cancel:
+    post:
+      operationId: cancelCheckout
+      summary: Cancel only an unsubmitted safe unpaid checkout
+      description: No body. Atomic guard refuses unresolved or possibly exposed authorizations;
+        409 with status action. Does not call onchain cancellation or claim app pause
+        revokes signatures.
+      security: *id010
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutStatus'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required with browser cookie authentication plus exact Origin;
+          not needed for bearer-only agents. No cross-origin cookie fallback.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+  /v1/orders/{id}/receipt:
+    get:
+      operationId: getReceipt
+      summary: Private purchase record
+      description: Private purchase record
+      security: *id010
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '202':
+          description: No verified settlement yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutStatus'
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+  /v1/orders/{id}/download:
+    get:
+      operationId: downloadAsset
+      summary: Authorize each private file and range request
+      description: Authorize each private file and range request
+      security: *id010
+      responses:
+        '200':
+          description: Private immutable attachment
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition: &id013
+              schema:
+                type: string
+            X-Content-Type-Options: &id014
+              schema:
+                const: nosniff
+            Cache-Control: &id015
+              schema:
+                const: private, no-store
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '206':
+          description: Single authorized range
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Range:
+              schema:
+                type: string
+            Content-Disposition: *id013
+            X-Content-Type-Options: *id014
+            Cache-Control: *id015
+        '416':
+          $ref: '#/components/responses/RangeInvalid'
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: Range
+        in: header
+        schema:
+          type: string
+        description: One bytes range only; every request reauthorizes entitlement.
+  /v1/orders/{id}/recovery:
+    post:
+      operationId: exportRecovery
+      summary: Explicitly create or rotate order-scoped recovery file
+      description: Authenticated grant required. Rotates only this order recovery
+        credential, not another order. Return as attachment/no-store; never log or
+        include signature. Explicit user action; ordinary checkout session remains
+        usable.
+      security: *id010
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryExport'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Required with browser cookie authentication plus exact Origin;
+          not needed for bearer-only agents. No cross-origin cookie fallback.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+  /v1/recovery/import:
+    post:
+      operationId: importRecovery
+      parameters:
+      - name: X-Dispatch-Intent
+        in: header
+        required: true
+        schema: {const: recovery}
+      - name: X-CSRF-Token
+        in: header
+        required: false
+        schema: {type: string}
+        description: Required when reusing a valid browser cookie session.
+      summary: Exchange saved capability for buyer session
+      description: Exact Origin/JSON content type and login-CSRF protection; validate
+        token expiry/revocation/hash; add only its explicit order grant to a valid browser session, or create a new session if absent/expired.
+        No wallet/tx-based recovery. Generic invalid response avoids order enumeration.
+      security: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: __Host-dispatch_buyer; Secure; HttpOnly; SameSite=Lax;
+                Path=/; no Domain. Never logged.
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecoveryImport'
+  /v1/session:
+    get:
+      operationId: buyerSession
+      summary: Get CSRF token for established buyer cookie
+      description: Same-origin only; bearer clients do not need CSRF. Token never
+        authorizes another order.
+      security: *id010
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/operator/session/challenge:
+    get:
+      operationId: operatorChallenge
+      summary: Issue login CSRF challenge over private operator origin
+      description: Private loopback/VPN route despite public authentication scheme.
+        No bootstrap or password in response. Preauth session/challenge is bound to
+        exact Origin.
+      security: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: preauth; Secure; HttpOnly; SameSite=Lax; Path=/; no Domain.
+                Never logged.
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/operator/session:
+    post:
+      operationId: operatorLogin
+      summary: Authenticate locally bootstrapped operator
+      description: Private network only. Login CSRF challenge and exact Origin required.
+        Argon2id, rate limit and generic failure. No remote registration or bootstrap
+        endpoint.
+      security: *id001
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: __Host-dispatch_operator; Secure; HttpOnly; SameSite=Lax;
+                Path=/; no Domain. Never logged.
+        '400': *id003
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+    delete:
+      operationId: operatorLogout
+      summary: Revoke operator session
+      description: Revoke operator session
+      security: &id016
+      - operatorCookie: []
+      responses:
+        '204':
+          description: Success
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: expired __Host-dispatch_operator; Secure; HttpOnly; SameSite=Lax;
+                Path=/; no Domain. Never logged.
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+  /v1/operator/session/reauth:
+    post:
+      operationId: operatorReauth
+      summary: Fresh auth for settings and refund actions
+      description: Fresh auth for settings and refund actions. This nonfinancial
+        operation does not use Idempotency-Key or operator_command_records. Every
+        call verifies the password anew for the current live session and updates
+        fresh_auth_at only on success; a lost response requires another explicit
+        password check. No password or password-derived fingerprint is persisted.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+
+  /v1/operator/readiness:
+    get:
+      operationId: operatorReadiness
+      summary: Detailed redacted checks
+      description: Detailed redacted checks
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/operator/config:
+    get:
+      operationId: operatorConfig
+      summary: Read configuration state and version preconditions
+      description: Authenticated private-network read, including before first setup.
+        Return OperatorConfig from one consistent DB snapshot of merchant_control
+        and its linked immutable config. A clean migration returns state=unconfigured,
+        config_version=0, config=null and controls.version=0, mainnet_enabled=false,
+        payment_paused=true, fulfillment_paused=false, physical_enabled=false.
+        Config version zero is a sentinel, never a stored configuration. Later control
+        changes may advance controls.version while config_version stays zero.
+        Operator authentication/bootstrap is independent of merchant configuration;
+        missing config or provider readiness must not block this read or first save.
+        No default payee/config is fabricated and GET has no initialization side effect.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperatorConfig'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      operationId: updateConfig
+      summary: Initialize or append configuration after fresh auth
+      description: Fresh auth <=5min, deliberate exact payee confirmation. Reject
+        zero/wrong-format address. Does not mutate old quotes. Cannot change chain/token
+        or enable mainnet. Secrets provisioned outside API. Policy content/URLs changing
+        requires a new policy_version; a version never names different content.
+        Published products must be versioned to the compatible policy before new
+        checkouts are ready. Issued quotes retain their original policy/payee.
+        ConfigUpdate.expected_config_version compares only the active
+        merchant_config_versions.version, or zero exactly when control.config_id
+        is NULL and no config versions exist. It never compares controls.version.
+        Authenticate, require fresh auth, exact provisioned Origin/Host and CSRF
+        even on replay; pay_origin in this body cannot establish an allowed origin.
+        Local bootstrap provisions authentication and the trusted origin, not a
+        merchant_config_versions row. Validate pay_origin against that independently
+        provisioned public origin and confirmation_payee against the normalized payee.
+        Under merchant_control lock, consult the command key/fingerprint FIRST.
+        Equal fingerprint returns the original 200/body with Idempotency-Replayed=true,
+        including after subsequent config/pause changes. Changed fingerprint returns
+        409 IDEMPOTENCY_CONFLICT before comparing versions. For a new key, a stale
+        expected_config_version returns 409 STALE_CONFIG with next_action=review_config;
+        GET current config and explicitly reconfirm a new command. No rejected request
+        inserts a config, audit success or command result. Inconsistent/orphaned config
+        state returns 503 NOT_READY; never adopt or seed an existing version implicitly.
+        For a valid new command, atomically insert immutable config version current+1,
+        link control.config_id, increment the current control.version once, append
+        operator audit and insert the completed command with original 200/OperatorConfig
+        result referencing that audit. First save uses version 1, fixed Base/native-USDC
+        values and finality_policy=safe; mainnet remains false, payments paused and
+        physical disabled. Preserve fulfillment pause, caps and other controls.
+        Later saves preserve finality_policy and all control fields except config_id
+        and version. Pause/budget changes advance control.version independently and
+        do not stale config writes; config saves stale older pause preconditions.
+        No DB lock spans network I/O. Commit all four records/changes together or
+        roll all back; lost/unknown commit response retries the identical key/body.
+        Same-key races yield one mutation and replay; distinct keys with initial zero
+        yield one version 1 and STALE_CONFIG for the loser. No order is required.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/OperatorConfig'
+                - properties:
+                    state:
+                      const: configured
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigUpdate'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/pause/payments:
+    post:
+      operationId: pausePayments
+      summary: Set new-payment pause
+      description: Stops new quotes/binds/new dispatch intents. Committed in-flight
+        dispatch may still relay. Reconciliation/status/paid access continue. Resume
+        requires readiness; mainnet enablement is a separate owner-local gate.
+        PauseInput.expected_version compares merchant_control.version as returned in
+        OperatorConfig.controls.version. A successful new command increments that
+        counter once even if the requested pause already holds; replay does not.
+        It never changes config_version. Resume while unconfigured returns NOT_READY.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Controls'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PauseInput'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/pause/fulfillment:
+    post:
+      operationId: pauseFulfillment
+      summary: Set separate fulfillment/access pause
+      description: Set separate fulfillment/access pause. PauseInput.expected_version
+        compares merchant_control.version from OperatorConfig.controls.version;
+        a successful new command increments it once even if the pause already holds.
+        Replay does not increment it. Neither pause command changes config_version.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Controls'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PauseInput'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/products:
+    get:
+      operationId: operatorProducts
+      summary: List configured products
+      description: List configured products
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperatorProducts'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      operationId: createProduct
+      summary: Create immutable product version
+      description: Fresh auth. Local importer must already have registered immutable
+        asset manifest. No upload, remote URL import or private path input. Physical
+        rejected while disabled.
+      security: *id016
+      responses:
+        '201':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperatorProduct'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      parameters:
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/products/{product_id}:
+    put:
+      operationId: versionProduct
+      summary: Append product version
+      description: Fresh auth. Never replace purchased file bytes; existing orders
+        retain old version.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperatorProduct'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/orders:
+    get:
+      operationId: listOrders
+      summary: Private cursor-paginated orders
+      description: Private cursor-paginated orders
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderList'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+          maxLength: 256
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+  /v1/operator/orders/{id}:
+    get:
+      operationId: operatorOrder
+      summary: Payment/fulfillment/refund timeline
+      description: Payment/fulfillment/refund timeline
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperatorOrder'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+  /v1/operator/orders/{id}/receipt:
+    get:
+      operationId: operatorReceipt
+      summary: Private receipt export
+      description: Download as attachment/no-store. JSON first. If CSV is added, escape
+        formula-triggering cells and scan synthetic canaries; never include credentials,
+        signatures or physical contact.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+  /v1/operator/orders/{id}/delivery/retry:
+    post:
+      operationId: retryDelivery
+      summary: Retry same durable effect
+      description: Reuses existing effect_id; no new payment, entitlement or merchant
+        order. Unknown receiver outcome queries reference adapter status before replay. The operator transaction only reschedules the existing retry/dead_letter
+        outbox row via state/available_at after checking its fence and non-leased
+        status under lock; the worker performs I/O afterward. No new effect key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [job_id, expected_fence]
+              properties:
+                job_id: {type: string, format: uuid}
+                expected_fence: {type: string, pattern: '^(0|[1-9][0-9]*)$'}
+      security: *id016
+      responses:
+        '202':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutStatus'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/orders/{id}/refunds:
+    post:
+      operationId: prepareRefund
+      summary: Persist full original-payer refund intent
+      description: Fresh auth; verify original payment. No wallet prompt before commit.
+        Destination/amount derive from original settlement, no partial or alternative
+        address. One active/confirmed refund per settlement; a bound rejected intent also retains
+        settlement exclusion and its reserved nonce. Store immutable original
+        settlement/destination/full amount/token/approved signer and operation identity.
+        An approved signer may differ from the payee only after visible operator approval.
+      security: *id016
+      responses:
+        '201':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundPrepare'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/refunds/{id}:
+    get:
+      operationId: getRefund
+      summary: Read refund intent and reconciliation
+      description: Read refund intent and reconciliation
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+  /v1/operator/refunds/{id}/wallet-start:
+    post:
+      operationId: refundWalletStart
+      summary: Persist wallet-pending before external wallet call
+      description: Only manual external EOA wallet; fresh auth and expected version
+        required. A new wallet-start command is allowed only for an unbound prepared
+        row or a bound rejected row satisfying the explicit retry guard; every other
+        state conflicts, even with a new key. Independently observe chain 8453, a recent complete canonical block
+        and hash, signer nonce at that block and pending nonce outside DB locks.
+        Require unused nonce, no outstanding signer transaction, matching client hint
+        and approved signer; stale/inconsistent observations fail closed. Under
+        merchant_control then order/refund locks, check freshness and reserve the
+        unique chain/signer/nonce. Persist immutable RefundBinding and wallet_pending
+        together with command result/audit before returning. No network calls in locks.
+        Client sends the returned nonce, token target, zero native value and exact
+        transfer calldata; verify chain/account immediately before wallet invocation.
+        Wallet overrides or ambiguity enter review, never allocate nonce+1.
+        Only a first response with Idempotency-Replayed=false to an explicitly
+        initiated command permits binding review only, with poll_status. The separate
+        invocation endpoint reserves one-use ownership; the subsequent authorization endpoint is the sole source of sign_once authority after wallet reads. Persist client invocation intent
+        before calling wallet. Replay, lost response, reload or uncertain invocation
+        goes to status/reconciliation without another prompt. A bound rejected intent
+        may be explicitly retried on the SAME row with fresh auth/new key/version
+        only after durable affirmative no-send evidence and fresh independent checks
+        that the original anchor is canonical and the same nonce remains unused
+        with no pending transaction. Keep the original immutable binding; audit new
+        readiness evidence and clear current no_send_evidence after archiving it in
+        audit. Increment refund.version on every mutation, including wallet-start.
+        A timeout/client assertion alone never proves no-send.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundWalletStart'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/refunds/{id}/invocation:
+    post:
+      operationId: claimRefundInvocation
+      summary: Reserve one-use wallet invocation ownership after exact binding review
+      description: additional private guard. Reobserve the same unused pending-free nonce and canonical original/preparation anchors outside transactions; recheck bounded observation freshness, current fresh operator authority and the exact wallet-start version after the human confirmation wait. Insert a permanent unique refund and wallet-start invocation record before returning. This reserves ownership; the separate one-use authorization endpoint is the final sign_once authority after wallet reads. A lost response or duplicate fails closed; this endpoint never replays signing permission. It does not sign or send a transaction. Earlier wallet-start remains immutable and unknown outcomes never permit another invocation. A tested affirmative no-send retry uses its new wallet-start version on the same bound refund.
+      security: *id016
+      parameters:
+      - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: X-CSRF-Token, in: header, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expected_version: {type: integer, minimum: 0}
+              required: [expected_version]
+      responses:
+        '200':
+          description: First and only committed invocation claim; never replay this action
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Refund'}
+        '401': *id011
+        '403': *id012
+        '409': *id005
+  /v1/operator/refunds/{id}/authorization:
+    post:
+      operationId: authorizeRefundInvocation
+      summary: Authorize the claimed invocation after all wallet reads
+      description: Final current and fresh server authorization for the existing claim and its owning session. Reobserves unused nonce and canonical anchors, then permanently records the final anchor under locks. Not replayable. The browser performs no further await before calling the wallet, checks wallet change events and bounds response latency to five seconds. Browser and server are not atomic. Permission is not evidence that the wallet was invoked. Only later reported invocation evidence plus independent canonical transfer verification can confirm; missing association remains reviewable.
+      security: *id016
+      parameters:
+      - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: X-CSRF-Token, in: header, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expected_version: {type: integer, minimum: 0}
+              required: [expected_version]
+      responses:
+        '200':
+          description: One-use final invocation permission with a bounded response lifetime; never replay this action
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Refund'}
+        '401': *id011
+        '403': *id012
+        '409': *id005
+  /v1/operator/refunds/{id}/observation:
+    post:
+      operationId: refundObservation
+      summary: Record untrusted wallet outcome hint
+      description: Hash is an untrusted hint. Confirmation additionally requires an operator-reported already-started wallet call associated with the immutable final authorization and a transfer strictly after its canonical anchor. No missing invocation or authorization is backfilled. accepts a hash from the original wallet-start version through later reconciliation versions because it supplies evidence, never renewed invocation authority. Rejection still requires the exact current invocation version. Worker independently verifies successful
+        canonical receipt, chain, transaction from=expected_signer, nonce equal to
+        RefundBinding.wallet_account_nonce, to=token, value=0 and exact calldata,
+        plus the associated full original-payer Transfer. Inclusion height must be
+        strictly greater than prepare_block and prepare_block_hash must still be
+        canonical. Apply the saved order configuration observation policy; persist
+        inclusion height/hash, log identity, observed head/policy and verifier evidence.
+        Unknown-hash recovery scans complete canonical blocks after the saved anchor
+        for the exact signer/nonce and verifies the same transaction/call/log binding;
+        neither amount-only matching nor an old unrecorded transfer is evidence.
+        Scan gaps, nonce drift, wrong payload, competing transaction or reorg remain
+        review_required. Unknown broadcast forbids another prompt. user_rejected
+        requires expected_version from that wallet-start response and bounded
+        no_send_evidence carrying the same wallet_start_version. Under the refund
+        lock reject a stale version/invocation before changing state. Only a tested
+        allowlisted adapter rejection before signing, corroborated by independent
+        canonical/unused/pending-free nonce checks and supported transport evidence,
+        may establish no-send; no adapter is allowlisted until proves these
+        semantics. Unsupported or uncorroborated claims remain review.
+        Save accepted evidence with audit;
+        timeout or bare client assertion stays review. Never clear the binding or
+        release its nonce/settlement exclusion, including after definite rejection.
+      security: *id016
+      responses:
+        '202':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundObservation'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /v1/operator/orders/{id}/shipment:
+    post:
+      operationId: markShipment
+      summary: Conditional merchant-reported shipment
+      description: P1 only after physical prerequisites. Merchant claim, not carrier
+        verification or proof of delivery. Tracking HTTPS host allowlist; no automatic
+        fetching.
+      security: *id016
+      responses:
+        '200':
+          description: Success
+          headers:
+            Idempotency-Replayed:
+              required: true
+              description: True for a committed replay; never permits another wallet prompt.
+              schema:
+                type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutStatus'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentUpdate'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: *id009
+      - name: X-CSRF-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Cookie-bound CSRF token plus exact Origin; preauth challenge
+          for login, established operator session otherwise.
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Single-merchant operator command key, scoped by operationId.
+          See the global operator_command_records contract; same fingerprint returns
+          the committed result, mismatch is 409. No order scope or cache TTL reset.
+  /dispatch/v1/quote:
+    post:
+      operationId: adapterQuote
+      summary: Authoritative merchant quote
+      description: Authoritative merchant quote. Proposed reference adapter interface,
+        not an existing store-provider API. Idempotency by operation ID and fingerprint;
+        unknown outcome is pending/review.
+      security: &id017
+      - adapterBearer: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdapterQuote'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdapterQuoteInput'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+    servers:
+    - url: https://merchant-adapter.invalid
+      description: Owner-configured reference receiver; not a deployed endpoint.
+  /dispatch/v1/reserve:
+    post:
+      operationId: adapterReserve
+      summary: Reserve inventory idempotently
+      description: Reserve inventory idempotently. Proposed reference adapter interface,
+        not an existing store-provider API. Idempotency by operation ID and fingerprint;
+        unknown outcome is pending/review.
+      security: *id017
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationReceipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveCommand'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+    servers:
+    - url: https://merchant-adapter.invalid
+      description: Owner-configured reference receiver; not a deployed endpoint.
+  /dispatch/v1/claim-payment-channel:
+    post:
+      operationId: adapterClaimChannel
+      summary: Atomic competing-checkout payment claim
+      description: Atomic competing-checkout payment claim. Proposed reference adapter
+        interface, not an existing store-provider API. Idempotency by operation ID
+        and fingerprint; unknown outcome is pending/review.
+      security: *id017
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationReceipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveCommand'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+    servers:
+    - url: https://merchant-adapter.invalid
+      description: Owner-configured reference receiver; not a deployed endpoint.
+  /dispatch/v1/revalidate:
+    post:
+      operationId: adapterRevalidate
+      summary: Revalidate reserved stock and quote
+      description: Revalidate reserved stock and quote. Proposed reference adapter
+        interface, not an existing store-provider API. Idempotency by operation ID
+        and fingerprint; unknown outcome is pending/review.
+      security: *id017
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationReceipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationStateCommand'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+    servers:
+    - url: https://merchant-adapter.invalid
+      description: Owner-configured reference receiver; not a deployed endpoint.
+  /dispatch/v1/release:
+    post:
+      operationId: adapterRelease
+      summary: Release only with resolved evidence
+      description: Release only with resolved evidence. Proposed reference adapter
+        interface, not an existing store-provider API. Idempotency by operation ID
+        and fingerprint; unknown outcome is pending/review.
+      security: *id017
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationReceipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationStateCommand'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+    servers:
+    - url: https://merchant-adapter.invalid
+      description: Owner-configured reference receiver; not a deployed endpoint.
+  /dispatch/v1/hold:
+    post:
+      operationId: adapterHold
+      summary: Retain pending reservation for review
+      description: Retain pending reservation for review. Proposed reference adapter
+        interface, not an existing store-provider API. Idempotency by operation ID
+        and fingerprint; unknown outcome is pending/review.
+      security: *id017
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationReceipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationStateCommand'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Random operation key. Reuse for retries; conflicting normalized
+          fingerprint is 409. Durable financial records do not expire with a cache.
+    servers:
+    - url: https://merchant-adapter.invalid
+      description: Owner-configured reference receiver; not a deployed endpoint.
+  /dispatch/v1/operations/{operation_id}:
+    get:
+      operationId: adapterOperationStatus
+      summary: Durable operation receipt
+      description: Durable operation receipt. Proposed reference adapter interface,
+        not an existing store-provider API. Idempotency by operation ID and fingerprint;
+        unknown outcome is pending/review.
+      security: *id017
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationReceipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: operation_id
+        in: path
+        required: true
+        schema: *id009
+    servers:
+    - url: https://merchant-adapter.invalid
+      description: Owner-configured reference receiver; not a deployed endpoint.
+  /dispatch/v1/events:
+    post:
+      operationId: receivePaidEvent
+      summary: Reference durable paid-order receiver
+      description: HMAC-SHA256 over ASCII timestamp + period + exact raw body, key
+        selected by key ID; constant-time compare; 300s freshness window. Stable effect_id
+        across retries, fresh timestamp/signature. Transaction persists unique effect
+        and resulting merchant-order receipt before ACK. HTTP 200 does not mean shipped.
+        For paid events operation_id equals event_id; effect_id is stable logical
+        effect identity. Status queries use event_id as operation_id.
+      security:
+      - webhookSignature: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationReceipt'
+        '400': *id003
+        '401': *id011
+        '403': *id012
+        '404': *id004
+        '409': *id005
+        '422': *id006
+        '429': *id007
+        '503': *id008
+        '500':
+          description: Redacted unexpected internal failure; never imply payment failed
+            after unknown relay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '431':
+          description: Header exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Body exceeds bounded size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Unsupported content type; JSON required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaidEvent'
+      parameters:
+      - name: Dispatch-Timestamp
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9]+$
+      - name: Dispatch-Key-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          maxLength: 64
+    servers:
+    - url: https://merchant-adapter.invalid
+components:
+  schemas:
+    Id: *id009
+    Atomic:
+      type: string
+      pattern: ^(0|[1-9][0-9]{0,77})$
+      description: Unsigned decimal atomic USDC string, <= uint256 maximum. Server
+        enforces range and positive payable total.
+    Address:
+      type: string
+      pattern: ^0x[0-9a-fA-F]{40}$
+    Hash32:
+      type: string
+      pattern: ^0x[0-9a-fA-F]{64}$
+    NextAction:
+      type: string
+      enum:
+      - connect_wallet
+      - review_quote
+      - sign_once
+      - poll_status
+      - download
+      - import_recovery
+      - contact_support
+      - refresh_quote
+      - review_policy
+      - review_config
+      - create_checkout
+      - retry_delivery
+      - none
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          enum:
+          - INVALID_INPUT
+          - UNAUTHENTICATED
+          - FORBIDDEN
+          - NOT_FOUND
+          - CSRF_REJECTED
+          - STALE_QUOTE
+          - STALE_POLICY
+          - STALE_CONFIG
+          - PAYMENT_CONFLICT
+          - IDEMPOTENCY_CONFLICT
+          - PAYMENT_PENDING
+          - PAYMENT_PAUSED
+          - FULFILLMENT_PAUSED
+          - NOT_READY
+          - REVIEW_REQUIRED
+          - RATE_LIMITED
+          - RANGE_INVALID
+          - UPSTREAM_UNAVAILABLE
+          - BOOTSTRAP_REQUIRED
+          - FRESH_AUTH_REQUIRED
+          - PHYSICAL_DISABLED
+          - QUOTE_WINDOW_INVALID
+          - BODY_TOO_LARGE
+          - HEADER_TOO_LARGE
+          - UNSUPPORTED_MEDIA_TYPE
+          - INTERNAL_ERROR
+        message:
+          type: string
+          maxLength: 240
+        request_id: *id009
+        retryable: *id002
+        next_action:
+          $ref: '#/components/schemas/NextAction'
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 120
+      required:
+      - code
+      - message
+      - request_id
+      - retryable
+      - next_action
+    Product:
+      type: object
+      additionalProperties: false
+      properties:
+        merchant_name:
+          type: string
+          description: Public merchant identity for this catalog version.
+        id: *id009
+        version:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 160
+        description:
+          type: string
+          maxLength: 4000
+        kind:
+          type: string
+          enum:
+          - digital
+          - physical
+        indicative_amount_atomic:
+          $ref: '#/components/schemas/Atomic'
+        network:
+          const: eip155:8453
+        asset:
+          const: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+        purchase_path:
+          type: string
+        policy_urls:
+          type: array
+          items: &id019
+            type: string
+            format: uri
+        available: *id002
+      required:
+      - id
+      - version
+      - title
+      - description
+      - kind
+      - indicative_amount_atomic
+      - network
+      - asset
+      - purchase_path
+      - policy_urls
+      - available
+    Catalog:
+      type: object
+      additionalProperties: false
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        next_cursor:
+          type: string
+      required:
+      - products
+    AddressInput:
+      type: object
+      additionalProperties: false
+      properties:
+        recipient:
+          type: string
+          maxLength: 160
+        line1:
+          type: string
+          maxLength: 200
+        line2:
+          type: string
+          maxLength: 200
+        city:
+          type: string
+          maxLength: 120
+        region:
+          type: string
+          maxLength: 120
+        postal_code:
+          type: string
+          maxLength: 32
+        country:
+          type: string
+          pattern: ^[A-Z]{2}$
+        contact:
+          type: string
+          maxLength: 254
+        consent_version:
+          type: string
+          maxLength: 64
+        consent_confirmed:
+          const: true
+      required:
+      - recipient
+      - line1
+      - city
+      - postal_code
+      - country
+      - contact
+      - consent_version
+      - consent_confirmed
+    CheckoutCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        product_id: *id009
+        product_version:
+          type: integer
+          minimum: 1
+        quantity:
+          const: 1
+        client_kind:
+          type: string
+          enum:
+          - browser
+          - agent
+      required:
+      - product_id
+      - product_version
+      - quantity
+      - client_kind
+    CheckoutCreated:
+      type: object
+      additionalProperties: false
+      properties:
+        policy_version:
+          type: string
+          minLength: 1
+          description: Immutable policy version from the order-bound merchant config.
+        policy_urls:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uri
+          description: Public versioned policy content corresponding to policy_version.
+        id: *id009
+        status_path:
+          type: string
+        credential_confirmed:
+          const: false
+        agent_capability:
+          type: string
+          writeOnly: false
+          description: Returned once for client_kind=agent, HTTPS body only; never
+            log. Browser uses Set-Cookie instead.
+        expires_at: &id018
+          type: string
+          format: date-time
+      required:
+      - policy_urls
+      - policy_version
+      - id
+      - status_path
+      - credential_confirmed
+      - expires_at
+    QuoteInput:
+      type: object
+      additionalProperties: false
+      properties:
+        product_version:
+          type: integer
+          minimum: 1
+        quantity:
+          const: 1
+        policy_version:
+          type: string
+          minLength: 1
+          description: Echo the order-bound version returned before quoting; never guess.
+        shipping_address:
+          $ref: '#/components/schemas/AddressInput'
+      required:
+      - product_version
+      - quantity
+      - policy_version
+    Quote:
+      type: object
+      additionalProperties: false
+      properties:
+        policy_urls:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uri
+          description: Frozen public URLs from the quote config; covered by quote_hash.
+        id: *id009
+        order_id: *id009
+        product_id: *id009
+        product_version:
+          type: integer
+          minimum: 1
+        quantity:
+          const: 1
+        unit_atomic:
+          $ref: '#/components/schemas/Atomic'
+        discount_atomic:
+          const: '0'
+        tax_atomic:
+          $ref: '#/components/schemas/Atomic'
+        shipping_atomic:
+          $ref: '#/components/schemas/Atomic'
+        total_atomic:
+          $ref: '#/components/schemas/Atomic'
+        tax_status:
+          type: string
+          enum:
+          - calculated
+          - tax_included
+          - merchant_attested_zero
+        tax_source:
+          type: string
+        tax_version:
+          type: string
+        shipping_source:
+          type: string
+        policy_version:
+          type: string
+        network:
+          const: eip155:8453
+        asset:
+          $ref: '#/components/schemas/NativeUSDC'
+        payee:
+          $ref: '#/components/schemas/Address'
+        expires_at: *id018
+        server_time: *id018
+        quote_hash:
+          $ref: '#/components/schemas/Hash32'
+      required:
+      - policy_urls
+      - id
+      - order_id
+      - product_id
+      - product_version
+      - quantity
+      - unit_atomic
+      - discount_atomic
+      - tax_atomic
+      - shipping_atomic
+      - total_atomic
+      - tax_status
+      - tax_source
+      - tax_version
+      - shipping_source
+      - policy_version
+      - network
+      - asset
+      - payee
+      - expires_at
+      - server_time
+      - quote_hash
+    PayRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        quote_id: *id009
+        quote_hash:
+          $ref: '#/components/schemas/Hash32'
+      required:
+      - quote_id
+      - quote_hash
+    Delivery:
+      type: object
+      additionalProperties: false
+      properties:
+        state:
+          type: string
+          enum:
+          - not_ready
+          - queued
+          - processing
+          - available
+          - handoff_complete
+          - retry_pending
+          - blocked
+          - revoked
+        download_path:
+          type: string
+        file_name:
+          type: string
+        mime_type:
+          type: string
+        size_bytes:
+          type: integer
+          minimum: 0
+        sha256:
+          $ref: '#/components/schemas/Hash32'
+      required:
+      - state
+    MerchantHandoff:
+      type: object
+      additionalProperties: false
+      description: additive local projection; a durable receiver receipt is not shipment evidence.
+      properties:
+        state:
+          type: string
+          enum: [not_configured, queued, processing, retry_pending, blocked, recorded]
+        merchant_order_id:
+          type: string
+        receipt_id:
+          type: string
+      required: [state]
+    CheckoutStatus:
+      type: object
+      additionalProperties: false
+      properties:
+        merchant_handoff:
+          $ref: '#/components/schemas/MerchantHandoff'
+        merchant_name:
+          type: string
+          description: Merchant identity from the immutable order configuration (additive projection).
+        product:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              minimum: 1
+            title:
+              type: string
+              maxLength: 160
+            description:
+              type: string
+              maxLength: 4000
+          required: [id, version, title, description]
+          description: Immutable order-bound product presentation for reload/recovery; no private asset reference.
+        policy_version:
+          type: string
+          minLength: 1
+          description: Immutable policy version from the order-bound merchant config.
+        policy_urls:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uri
+          description: Public versioned policy content corresponding to policy_version.
+        id: *id009
+        credential_confirmed: *id002
+        order_state:
+          type: string
+          enum:
+          - draft
+          - quoted
+          - payment_pending
+          - paid
+          - fulfillment_pending
+          - fulfilled
+          - cancelled
+          - expired
+          - review_required
+        payment_state:
+          type: string
+          enum:
+          - none
+          - bound
+          - ready_to_submit
+          - submitting
+          - pending
+          - settled
+          - rejected_before_broadcast
+          - expired_unspent
+          - cancelled_onchain
+          - review_required
+        delivery:
+          $ref: '#/components/schemas/Delivery'
+        refund_state:
+          type: string
+          enum:
+          - none
+          - requested
+          - prepared
+          - wallet_pending
+          - broadcast_unknown
+          - submitted
+          - confirmed
+          - rejected
+          - review_required
+        shipment_state:
+          type: string
+          enum:
+          - not_applicable
+          - awaiting_merchant
+          - merchant_marked_shipped
+          - review_required
+        next_action:
+          $ref: '#/components/schemas/NextAction'
+        status_path:
+          type: string
+        quote:
+          $ref: '#/components/schemas/Quote'
+        request_id: *id009
+        version:
+          type: integer
+          minimum: 0
+      required:
+      - policy_urls
+      - policy_version
+      - id
+      - credential_confirmed
+      - order_state
+      - payment_state
+      - delivery
+      - refund_state
+      - shipment_state
+      - next_action
+      - status_path
+      - request_id
+      - version
+    Receipt:
+      type: object
+      additionalProperties: false
+      properties:
+        order_id: *id009
+        product:
+          $ref: '#/components/schemas/Product'
+        amount_atomic:
+          $ref: '#/components/schemas/Atomic'
+        network:
+          const: eip155:8453
+        asset:
+          $ref: '#/components/schemas/NativeUSDC'
+        payer:
+          $ref: '#/components/schemas/Address'
+        payee:
+          $ref: '#/components/schemas/Address'
+        tx_hash:
+          $ref: '#/components/schemas/Hash32'
+        block_hash:
+          $ref: '#/components/schemas/Hash32'
+        block_number:
+          type: string
+          pattern: ^[0-9]+$
+        authorization_log_index:
+          type: integer
+          minimum: 0
+        transfer_log_index:
+          type: integer
+          minimum: 0
+        observation_policy:
+          type: string
+          enum:
+          - safe
+          - finalized
+          - l2_receipt_risk_accepted
+        payment_status:
+          const: settled
+        fulfillment_status:
+          type: string
+        refund_status:
+          type: string
+        created_at: *id018
+        label:
+          const: Purchase record; not an audit, escrow certificate, or proof of shipment.
+        settlement_id:
+          type: string
+          format: uuid
+      required:
+      - order_id
+      - product
+      - amount_atomic
+      - network
+      - asset
+      - payer
+      - payee
+      - tx_hash
+      - block_hash
+      - block_number
+      - authorization_log_index
+      - transfer_log_index
+      - observation_policy
+      - payment_status
+      - fulfillment_status
+      - refund_status
+      - created_at
+      - label
+      - settlement_id
+    RecoveryImport:
+      type: object
+      additionalProperties: false
+      properties:
+        capability:
+          type: string
+          minLength: 43
+          maxLength: 256
+          writeOnly: true
+      required:
+      - capability
+    RecoveryExport:
+      type: object
+      additionalProperties: false
+      properties:
+        version:
+          const: 1
+        order_id: *id009
+        origin: *id019
+        capability:
+          type: string
+          minLength: 43
+          maxLength: 256
+        expires_at: *id018
+      required:
+      - version
+      - order_id
+      - origin
+      - capability
+      - expires_at
+    SessionInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        csrf_token:
+          type: string
+        expires_at: *id018
+      required:
+      - csrf_token
+      - expires_at
+    Login:
+      type: object
+      additionalProperties: false
+      properties:
+        password:
+          type: string
+          minLength: 1
+          maxLength: 1024
+          writeOnly: true
+      required:
+      - password
+    PauseInput:
+      type: object
+      additionalProperties: false
+      properties:
+        paused: *id002
+        expected_version:
+          type: integer
+          minimum: 0
+          description: merchant_control.version, discovered in OperatorConfig.controls.version.
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 240
+      required:
+      - paused
+      - expected_version
+      - reason
+    Controls:
+      type: object
+      additionalProperties: false
+      properties:
+        payment_paused: *id002
+        fulfillment_paused: *id002
+        mainnet_enabled: *id002
+        physical_enabled: *id002
+        version:
+          type: integer
+          minimum: 0
+          description: Independent merchant_control counter; config saves, pause commands
+            and budget rollover advance it. Never use it as expected_config_version.
+      required:
+      - payment_paused
+      - fulfillment_paused
+      - mainnet_enabled
+      - physical_enabled
+      - version
+    OperatorConfig:
+      type: object
+      additionalProperties: false
+      description: Private operator snapshot. config_version equals config.version when
+        configured, otherwise zero; it is independent of controls.version. The server
+        enforces this equality from one consistent DB snapshot, not JSON Schema alone.
+        A PUT result is the original committed snapshot; GET reads current state.
+      properties:
+        state:
+          type: string
+          enum: [unconfigured, configured]
+        config_version:
+          type: integer
+          minimum: 0
+        config:
+          oneOf:
+          - $ref: '#/components/schemas/PublicConfig'
+          - type: 'null'
+        controls:
+          $ref: '#/components/schemas/Controls'
+      required: [state, config_version, config, controls]
+      allOf:
+      - if:
+          properties:
+            state:
+              const: unconfigured
+        then:
+          properties:
+            config_version:
+              const: 0
+            config:
+              type: 'null'
+            controls:
+              properties:
+                mainnet_enabled:
+                  const: false
+                payment_paused:
+                  const: true
+                physical_enabled:
+                  const: false
+        else:
+          properties:
+            config_version:
+              type: integer
+              minimum: 1
+            config:
+              $ref: '#/components/schemas/PublicConfig'
+    PublicConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        version:
+          type: integer
+          minimum: 1
+          description: Immutable merchant_config_versions.version; equals the enclosing
+            OperatorConfig.config_version. Version 1 is the first committed config.
+        merchant_name:
+          type: string
+          maxLength: 160
+        pay_origin: *id019
+        payee:
+          $ref: '#/components/schemas/Address'
+        network:
+          const: eip155:8453
+        asset:
+          $ref: '#/components/schemas/NativeUSDC'
+        policy_version:
+          type: string
+        policy_urls:
+          type: array
+          items: *id019
+        finality_policy:
+          type: string
+          enum:
+          - safe
+          - finalized
+          - l2_receipt_risk_accepted
+      required:
+      - version
+      - merchant_name
+      - pay_origin
+      - payee
+      - network
+      - asset
+      - policy_version
+      - policy_urls
+      - finality_policy
+    ConfigUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_config_version:
+          type: integer
+          minimum: 0
+          description: Echo OperatorConfig.config_version. Zero permits first save only
+            with config_id NULL and no config rows; positive values compare the linked
+            immutable config version. Never use merchant_control.version here.
+        merchant_name:
+          type: string
+          maxLength: 160
+        pay_origin: *id019
+        payee:
+          $ref: '#/components/schemas/Address'
+        policy_version:
+          type: string
+        policy_urls:
+          type: array
+          items: *id019
+        confirmation_payee:
+          $ref: '#/components/schemas/Address'
+      required:
+      - expected_config_version
+      - merchant_name
+      - pay_origin
+      - payee
+      - policy_version
+      - policy_urls
+      - confirmation_payee
+    ProductInput:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version: {type: integer, minimum: 1, description: Required by versionProduct; compare current published version.}
+        title:
+          type: string
+          maxLength: 160
+        description:
+          type: string
+          maxLength: 4000
+        kind:
+          type: string
+          enum:
+          - digital
+          - physical
+        asset_manifest_id: *id009
+        unit_atomic:
+          $ref: '#/components/schemas/Atomic'
+        tax_status:
+          type: string
+          enum:
+          - calculated
+          - tax_included
+          - merchant_attested_zero
+        tax_source:
+          type: string
+        tax_version:
+          type: string
+        policy_version:
+          type: string
+        enabled: *id002
+      required:
+      - title
+      - description
+      - kind
+      - unit_atomic
+      - tax_status
+      - tax_source
+      - tax_version
+      - policy_version
+      - enabled
+    Readiness:
+      type: object
+      additionalProperties: false
+      properties:
+        payments_ready: *id002
+        physical_ready: *id002
+        checks:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              code:
+                type: string
+              status:
+                type: string
+                enum:
+                - pass
+                - blocked
+                - unknown
+              safe_message:
+                type: string
+            required:
+            - code
+            - status
+            - safe_message
+        controls:
+          $ref: '#/components/schemas/Controls'
+      required:
+      - payments_ready
+      - physical_ready
+      - checks
+      - controls
+    OperatorOrder:
+      type: object
+      additionalProperties: false
+      properties:
+        retry_jobs:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, fence]
+            properties:
+              id: {type: string, format: uuid}
+              fence: {type: string, pattern: '^(0|[1-9][0-9]*)$'}
+        order:
+          $ref: '#/components/schemas/OperatorOrderSummary'
+        refunds:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id: {type: string, format: uuid}
+              state: {type: string}
+              version: {type: string, pattern: '^[0-9]+$'}
+            required: [id, state, version]
+        status:
+          $ref: '#/components/schemas/CheckoutStatus'
+        product:
+          $ref: '#/components/schemas/Product'
+        timeline:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              time: *id018
+              kind:
+                type: string
+              safe_message:
+                type: string
+            required:
+            - time
+            - kind
+            - safe_message
+        receipt:
+          $ref: '#/components/schemas/Receipt'
+        contact:
+          $ref: '#/components/schemas/AddressInput'
+      required:
+      - status
+      - product
+      - timeline
+    OrderList:
+      type: object
+      additionalProperties: false
+      properties:
+        summaries:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperatorOrderSummary'
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckoutStatus'
+        next_cursor:
+          type: string
+      required:
+      - orders
+    RefundPrepare:
+      type: object
+      additionalProperties: false
+      properties:
+        settlement_id: *id009
+        confirmed_original_payer:
+          $ref: '#/components/schemas/Address'
+        expected_signer:
+          $ref: '#/components/schemas/Address'
+      required:
+      - settlement_id
+      - confirmed_original_payer
+      - expected_signer
+    Refund:
+      type: object
+      additionalProperties: false
+      description: binding is absent before wallet-start and required after any wallet
+        start, including a bound rejection. Idempotency replay retains the original
+        result. Wallet-start is review-only; only the first successful final invocation
+        authorization returns sign_once, never an idempotency replay. A claim alone returns poll_status.
+      allOf:
+      - if:
+          properties:
+            state:
+              enum: [wallet_pending, broadcast_unknown, submitted, confirmed]
+          required: [state]
+        then:
+          required: [binding]
+      properties:
+        authorization_window_ms:
+          type: integer
+          minimum: 0
+          maximum: 5000
+          description: One-use authorization response lifetime bounded by current session and fresh-auth expiry. Client subtracts total request elapsed time before invocation.
+        binding:
+          $ref: '#/components/schemas/RefundBinding'
+        id: *id009
+        order_id: *id009
+        settlement_id: *id009
+        amount_atomic:
+          $ref: '#/components/schemas/Atomic'
+        destination:
+          $ref: '#/components/schemas/Address'
+        token:
+          $ref: '#/components/schemas/NativeUSDC'
+        expected_signer:
+          $ref: '#/components/schemas/Address'
+        state:
+          type: string
+          enum:
+          - requested
+          - prepared
+          - wallet_pending
+          - broadcast_unknown
+          - submitted
+          - confirmed
+          - rejected
+          - review_required
+        transaction_hint:
+          $ref: '#/components/schemas/Hash32'
+        next_action:
+          $ref: '#/components/schemas/NextAction'
+        version:
+          type: integer
+          minimum: 0
+      required:
+      - id
+      - order_id
+      - settlement_id
+      - amount_atomic
+      - destination
+      - token
+      - expected_signer
+      - state
+      - next_action
+      - version
+    RefundBinding:
+      type: object
+      additionalProperties: false
+      description: Immutable server-derived transaction and chronology anchor. Exact
+        ERC-20 transfer calldata is encoded with the maintained EVM library from the
+        saved destination/full amount. Decimal nonce/height strings are exact integers.
+      properties:
+        chain_id:
+          const: 8453
+        wallet_account_nonce:
+          $ref: '#/components/schemas/Atomic'
+        prepare_block:
+          type: string
+          pattern: ^(0|[1-9][0-9]*)$
+        prepare_block_hash:
+          $ref: '#/components/schemas/Hash32'
+        prepare_observed_at: *id018
+        wallet_started_at: *id018
+        transaction_to:
+          $ref: '#/components/schemas/NativeUSDC'
+        transaction_value:
+          const: '0'
+        transaction_calldata:
+          type: string
+          pattern: ^0xa9059cbb[0-9a-f]{128}$
+      required: [chain_id, wallet_account_nonce, prepare_block, prepare_block_hash,
+        prepare_observed_at, wallet_started_at, transaction_to, transaction_value,
+        transaction_calldata]
+    RefundWalletStart:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0
+        signer:
+          $ref: '#/components/schemas/Address'
+        observed_account_nonce:
+          description: Client comparison hint only; server independently observes and binds it.
+          type: string
+          pattern: ^[0-9]+$
+      required:
+      - expected_version
+      - signer
+      - observed_account_nonce
+    RefundNoSendEvidence:
+      type: object
+      additionalProperties: false
+      description: Untrusted adapter report, never sufficient by itself. The server
+        must corroborate a tested allowlisted adapter/transport no-send classification
+        and independent unused/pending-free nonce evidence; otherwise keep review.
+        Do not attach raw wallet traces, keys, signatures or other sensitive payloads.
+      properties:
+        wallet_start_version:
+          type: integer
+          minimum: 0
+        adapter_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Exact adapter/wallet version with separately tested rejection semantics.
+        stage:
+          const: before_signing
+        wallet_error_code:
+          const: 4001
+      required: [wallet_start_version, adapter_id, stage, wallet_error_code]
+    RefundObservation:
+      type: object
+      additionalProperties: false
+      allOf:
+      - if:
+          properties:
+            outcome:
+              const: user_rejected_before_send
+          required: [outcome]
+        then:
+          required: [no_send_evidence]
+      - if:
+          properties:
+            outcome:
+              const: transaction_hash
+          required: [outcome]
+        then:
+          required: [transaction_hash]
+      properties:
+        invocation_version:
+          type: integer
+          minimum: 1
+          description: Wallet-start identity for an already-started wallet call, never permission to start another. Requires its durable final authorization. Omit for unattributed public hints.
+        expected_version:
+          type: integer
+          minimum: 0
+          description: Wallet-start response version for rejection; current refund
+            version for hash/unknown hints. Every mutation increments version.
+        outcome:
+          type: string
+          enum:
+          - user_rejected_before_send
+          - transaction_hash
+          - unknown
+        transaction_hash:
+          $ref: '#/components/schemas/Hash32'
+        no_send_evidence:
+          $ref: '#/components/schemas/RefundNoSendEvidence'
+      required:
+      - expected_version
+      - outcome
+    ShipmentUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0
+        merchant_confirmed_shipped:
+          const: true
+        tracking_url: *id019
+        carrier:
+          type: string
+          maxLength: 120
+      required:
+      - expected_version
+      - merchant_confirmed_shipped
+    PaidEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          const: dispatch.order.paid.v1
+        event_id: *id009
+        effect_id:
+          type: string
+        occurred_at: *id018
+        merchant_id:
+          const: single
+        merchant_order_id:
+          type: string
+        dispatch_order_id: *id009
+        quote_id: *id009
+        product_version:
+          type: integer
+          minimum: 1
+        amount_atomic:
+          $ref: '#/components/schemas/Atomic'
+        asset:
+          $ref: '#/components/schemas/NativeUSDC'
+        network:
+          const: eip155:8453
+        payment_reference:
+          type: object
+          additionalProperties: false
+          properties:
+            transaction_hash:
+              $ref: '#/components/schemas/Hash32'
+            authorization_log_index:
+              type: integer
+              minimum: 0
+            transfer_log_index:
+              type: integer
+              minimum: 0
+            observation_policy:
+              type: string
+              enum:
+              - safe
+              - finalized
+              - l2_receipt_risk_accepted
+          required:
+          - transaction_hash
+          - authorization_log_index
+          - transfer_log_index
+          - observation_policy
+      required:
+      - type
+      - event_id
+      - effect_id
+      - occurred_at
+      - merchant_id
+      - merchant_order_id
+      - dispatch_order_id
+      - quote_id
+      - product_version
+      - amount_atomic
+      - asset
+      - network
+      - payment_reference
+    OperationReceipt:
+      type: object
+      additionalProperties: false
+      properties:
+        operation_id: *id009
+        effect_id:
+          type: string
+        state:
+          type: string
+          enum:
+          - pending
+          - committed
+          - rejected
+          - review_required
+        merchant_order_id:
+          type: string
+        receipt_id:
+          type: string
+      required:
+      - operation_id
+      - state
+    AdapterQuoteInput:
+      type: object
+      additionalProperties: false
+      properties:
+        operation_id: *id009
+        dispatch_order_id: *id009
+        product_id: *id009
+        quantity:
+          const: 1
+        address:
+          $ref: '#/components/schemas/AddressInput'
+      required:
+      - operation_id
+      - dispatch_order_id
+      - product_id
+      - quantity
+    AdapterQuote:
+      type: object
+      additionalProperties: false
+      properties:
+        operation_id: *id009
+        merchant_order_id:
+          type: string
+        quote:
+          $ref: '#/components/schemas/Quote'
+        source_version:
+          type: string
+      required:
+      - operation_id
+      - merchant_order_id
+      - quote
+      - source_version
+    ReservationCommand:
+      type: object
+      additionalProperties: false
+      properties:
+        operation_id: *id009
+        dispatch_order_id: *id009
+        quote_id: *id009
+        merchant_order_id:
+          type: string
+        reservation_id:
+          type: string
+        reason:
+          type: string
+          maxLength: 240
+      required:
+      - operation_id
+      - dispatch_order_id
+    ReservationReceipt:
+      type: object
+      additionalProperties: false
+      properties:
+        operation_id: *id009
+        reservation_id:
+          type: string
+        merchant_order_id:
+          type: string
+        state:
+          type: string
+          enum:
+          - reserved
+          - held_pending
+          - released
+          - consumed
+          - review_required
+        expires_at: *id018
+        channel_claim_receipt:
+          type: string
+      required:
+      - operation_id
+      - state
+    SDKPaymentRequired:
+      type: object
+      description: Opaque SDK-owned PaymentRequired v2. Generate and validate using
+        pinned @x402/core schemas and HTTP codecs. No locally invented fields; exact
+        wire conformance is a gate.
+      externalDocs:
+        url: https://registry.npmjs.org/@x402/core/-/core-2.28.0.tgz
+      x-sdk-type: '@x402/core/types.PaymentRequired'
+      x-evidence: published-source-inspected; not compiled
+    OperatorOrderSummary:
+      type: object
+      additionalProperties: false
+      description: private operator projection. No signature, credential, ciphertext
+        or secret is exposed. Payment identity is not buyer authentication.
+      properties:
+        id:
+          type: string
+        order_state:
+          type: string
+        delivery_state:
+          type: string
+        shipment_state:
+          type: string
+        created_at:
+          type: string
+        version:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        product_id:
+          type: string
+        unit_atomic:
+          type: string
+        merchant_name:
+          type: string
+        policy_version:
+          type: string
+        original_payee:
+          type: string
+        payment_state:
+          type: string
+        refund_state:
+          type: string
+        product_version:
+          type: integer
+          minimum: 1
+        policy_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        settlement_id:
+          type:
+          - string
+          - 'null'
+        original_payer:
+          type:
+          - string
+          - 'null'
+        amount_atomic:
+          type:
+          - string
+          - 'null'
+      required:
+      - id
+      - order_state
+      - delivery_state
+      - shipment_state
+      - created_at
+      - version
+      - title
+      - description
+      - product_id
+      - unit_atomic
+      - merchant_name
+      - policy_version
+      - original_payee
+      - payment_state
+      - refund_state
+      - product_version
+      - policy_urls
+      - settlement_id
+      - original_payer
+      - amount_atomic
+    OperatorProduct:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        kind:
+          type: string
+        asset_manifest_id:
+          type: string
+        unit_atomic:
+          type: string
+        tax_status:
+          type: string
+        tax_source:
+          type: string
+        tax_version:
+          type: string
+        policy_version:
+          type: string
+        purchase_path:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        enabled:
+          type: boolean
+      required:
+      - id
+      - title
+      - description
+      - kind
+      - asset_manifest_id
+      - unit_atomic
+      - tax_status
+      - tax_source
+      - tax_version
+      - policy_version
+      - purchase_path
+      - version
+      - enabled
+    OperatorProducts:
+      type: object
+      additionalProperties: false
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperatorProduct'
+        assets:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              download_name:
+                type: string
+              size_bytes:
+                type: string
+                pattern: ^[0-9]+$
+            required:
+            - id
+            - download_name
+            - size_bytes
+      required:
+      - products
+      - assets
+    NativeUSDC:
+      type: string
+      const: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+    ReserveCommand:
+      allOf:
+      - $ref: '#/components/schemas/ReservationCommand'
+      - type: object
+        required:
+        - operation_id
+        - dispatch_order_id
+        - quote_id
+        - merchant_order_id
+    ReservationStateCommand:
+      allOf:
+      - $ref: '#/components/schemas/ReservationCommand'
+      - type: object
+        required:
+        - operation_id
+        - dispatch_order_id
+        - reservation_id
+        - reason
+  responses:
+    BadRequest:
+      description: Malformed or bounded input rejected
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing/expired credential
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Scope, Origin or CSRF rejected
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Unknown or inaccessible resource; no enumeration
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Quote/authorization/idempotency/state conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: Invalid product, tax, address or field
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Bounded rate exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        Retry-After:
+          schema:
+            type: string
+            pattern: ^[0-9]+$
+    Unavailable:
+      description: Dependency/readiness/pause blocked
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        Retry-After:
+          schema:
+            type: string
+            pattern: ^[0-9]+$
+    RangeInvalid:
+      description: Invalid or unsupported range
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    buyerBearer:
+      type: http
+      scheme: bearer
+      description: Opaque 256-bit order-scoped grant; never wallet/payment proof.
+    buyerCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-dispatch_buyer
+    operatorCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-dispatch_operator
+    adapterBearer:
+      type: http
+      scheme: bearer
+      description: Per-target runtime service credential provisioned separately from source control.
+    webhookSignature:
+      type: apiKey
+      in: header
+      name: Dispatch-Signature
+      description: v1=<hex HMAC-SHA256>; timestamp/key ID also required.
+x-sdk-envelope-policy:
+  version: '@x402/core@2.28.0'
+  wire_headers:
+  - PAYMENT-REQUIRED
+  - PAYMENT-SIGNATURE
+  - PAYMENT-RESPONSE
+  source: https://registry.npmjs.org/@x402/core/-/core-2.28.0.tgz
+  validation: All local refs resolved; SDK conformance requires its executable tests, no external
+    JSON-schema $ref falsely points at TypeScript source.

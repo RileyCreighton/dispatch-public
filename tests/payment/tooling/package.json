@@ -1,0 +1,14 @@
+{
+  "name": "dispatch-local-chain-fixture-tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "dependencies": {
+    "@foundry-rs/anvil-linux-amd64": "1.7.1",
+    "solc": "0.8.37"
+  },
+  "overrides": {
+    "tmp": "0.2.7"
+  }
+}

@@ -1,0 +1,359 @@
+{
+  "name": "dispatch-digital-local",
+  "services": {
+    "postgres": {
+      "image": "postgres:17.11-bookworm@sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df",
+      "platform": "linux/amd64",
+      "user": "999:999",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=32m,uid=999,gid=999",
+        "/var/run/postgresql:rw,nosuid,size=4m,uid=999,gid=999"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "512m",
+      "networks": [
+        "data"
+      ],
+      "environment": {
+        "POSTGRES_DB": "dispatch",
+        "POSTGRES_USER": "local_cluster_admin",
+        "POSTGRES_PASSWORD": "fixture-only-cluster-admin",
+        "POSTGRES_INITDB_ARGS": "--auth-host=scram-sha-256 --auth-local=trust"
+      },
+      "volumes": [
+        "database:/var/lib/postgresql/data",
+        "../db/bootstrap.sql:/docker-entrypoint-initdb.d/001-bootstrap.sql:ro",
+        "./local-logins.sql:/docker-entrypoint-initdb.d/002-local-logins.sql:ro"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -h 127.0.0.1 -U local_cluster_admin -d dispatch"
+        ],
+        "interval": "5s",
+        "timeout": "3s",
+        "retries": 10,
+        "start_period": "180s"
+      },
+      "command": [
+        "postgres",
+        "-c",
+        "log_error_verbosity=terse",
+        "-c",
+        "log_min_error_statement=panic",
+        "-c",
+        "log_parameter_max_length=0",
+        "-c",
+        "log_parameter_max_length_on_error=0"
+      ]
+    },
+    "migration": {
+      "build": {
+        "context": "..",
+        "dockerfile": "infra/Digital.Dockerfile",
+        "target": "runtime"
+      },
+      "platform": "linux/amd64",
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=16m,uid=1000,gid=1000"
+      ],
+      "pids_limit": 64,
+      "mem_limit": "512m",
+      "init": true,
+      "networks": [
+        "data"
+      ],
+      "environment": {
+        "DISPATCH_MODE": "local",
+        "DISPATCH_DB_HOST": "postgres",
+        "DISPATCH_RUNTIME": "digital-fixture"
+      },
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "profiles": [
+        "tools"
+      ],
+      "command": [
+        "node",
+        "dist/packages/db/src/migrate.js"
+      ],
+      "volumes": [
+        "bootstrap:/bootstrap",
+        "private-assets:/private-assets:ro"
+      ]
+    },
+    "api": {
+      "build": {
+        "context": "..",
+        "dockerfile": "infra/Digital.Dockerfile",
+        "target": "runtime"
+      },
+      "platform": "linux/amd64",
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=16m,uid=1000,gid=1000"
+      ],
+      "pids_limit": 64,
+      "mem_limit": "512m",
+      "init": true,
+      "environment": {
+        "DISPATCH_MODE": "local",
+        "DISPATCH_DB_HOST": "postgres",
+        "DISPATCH_RUNTIME": "digital-fixture"
+      },
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "fixtures": {
+          "condition": "service_started"
+        }
+      },
+      "volumes": [
+        "private-assets:/private-assets:ro",
+        "api-material:/run/dispatch:ro"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "-e",
+          "require('https').get('https://127.0.0.1:18443/health/live',{ca:require('fs').readFileSync('/run/dispatch/tls.crt')},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+        ],
+        "interval": "10s",
+        "timeout": "3s",
+        "retries": 3
+      },
+      "command": [
+        "node",
+        "dist/apps/api/src/local-digital.js"
+      ],
+      "network_mode": "service:fixtures"
+    },
+    "worker": {
+      "build": {
+        "context": "..",
+        "dockerfile": "infra/Digital.Dockerfile",
+        "target": "runtime"
+      },
+      "platform": "linux/amd64",
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=16m,uid=1000,gid=1000"
+      ],
+      "pids_limit": 64,
+      "mem_limit": "512m",
+      "init": true,
+      "environment": {
+        "DISPATCH_MODE": "local",
+        "DISPATCH_DB_HOST": "postgres",
+        "DISPATCH_RUNTIME": "digital-fixture"
+      },
+      "depends_on": {
+        "api": {
+          "condition": "service_healthy"
+        }
+      },
+      "command": [
+        "node",
+        "dist/apps/worker/src/local-digital.js"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "-e",
+          "const fs=require('fs');process.exit(Date.now()-Number(fs.readFileSync('/tmp/dispatch-worker-health','utf8'))<5000?0:1)"
+        ],
+        "interval": "10s",
+        "timeout": "3s",
+        "retries": 3,
+        "start_period": "180s"
+      },
+      "network_mode": "service:fixtures",
+      "volumes": [
+        "worker-material:/run/dispatch:ro"
+      ]
+    },
+    "edge": {
+      "build": {
+        "context": "..",
+        "dockerfile": "infra/Caddy.security.Dockerfile"
+      },
+      "platform": "linux/amd64",
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=8m,uid=1000,gid=1000"
+      ],
+      "pids_limit": 32,
+      "mem_limit": "128m",
+      "ports": [
+        "127.0.0.1:18443:8080"
+      ],
+      "networks": [
+        "app",
+        "ingress"
+      ],
+      "volumes": [
+        "./Caddy.digital:/etc/caddy/Caddyfile:ro",
+        "edge-material:/run/dispatch:ro"
+      ],
+      "depends_on": {
+        "api": {
+          "condition": "service_healthy"
+        }
+      }
+    },
+    "fixtures": {
+      "build": {
+        "context": "..",
+        "dockerfile": "infra/Digital.Dockerfile",
+        "target": "fixtures"
+      },
+      "platform": "linux/amd64",
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=16m,uid=1000,gid=1000"
+      ],
+      "pids_limit": 64,
+      "mem_limit": "512m",
+      "init": true,
+      "environment": {
+        "DISPATCH_MODE": "local",
+        "DISPATCH_DB_HOST": "postgres",
+        "DISPATCH_RUNTIME": "digital-fixture"
+      },
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "command": [
+        "node",
+        "fixtures.mjs"
+      ],
+      "volumes": [
+        "fixture-material:/run/dispatch:ro",
+        "fixture-journal:/journal"
+      ],
+      "networks": {
+        "data": {},
+        "app": {
+          "aliases": [
+            "api"
+          ]
+        }
+      }
+    },
+    "receiver": {
+      "build": {
+        "context": "..",
+        "dockerfile": "infra/Digital.Dockerfile",
+        "target": "runtime"
+      },
+      "platform": "linux/amd64",
+      "user": "1000:1000",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=16m,uid=1000,gid=1000"
+      ],
+      "pids_limit": 64,
+      "mem_limit": "512m",
+      "init": true,
+      "environment": {
+        "DISPATCH_MODE": "local",
+        "DISPATCH_DB_HOST": "postgres",
+        "DISPATCH_RUNTIME": "digital-fixture"
+      },
+      "depends_on": {
+        "api": {
+          "condition": "service_healthy"
+        }
+      },
+      "command": [
+        "node",
+        "dist/examples/merchant-adapter/src/local.js"
+      ],
+      "network_mode": "service:fixtures",
+      "volumes": [
+        "receiver-material:/run/dispatch:ro",
+        "receiver-journal:/journal:ro"
+      ]
+    }
+  },
+  "networks": {
+    "data": {
+      "internal": true
+    },
+    "app": {
+      "internal": true
+    },
+    "ingress": {
+      "internal": false
+    }
+  },
+  "volumes": {
+    "database": {},
+    "private-assets": {},
+    "api-material": {},
+    "worker-material": {},
+    "edge-material": {},
+    "fixture-material": {},
+    "receiver-material": {},
+    "fixture-journal": {},
+    "receiver-journal": {},
+    "bootstrap": {}
+  }
+}

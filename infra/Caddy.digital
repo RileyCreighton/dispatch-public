@@ -1,0 +1,68 @@
+{
+ log {
+  output stdout
+  format filter {
+   wrap json {
+    message_key ""
+   }
+   fields {
+    request delete
+    resp_headers delete
+    err_trace delete
+    err_id delete
+    error delete
+   }
+  }
+ }
+ admin off
+ auto_https off
+ persist_config off
+}
+https://:8080 {
+ log {
+  output stdout
+  format filter {
+   wrap json {
+    message_key ""
+   }
+   fields {
+    request delete
+    resp_headers delete
+    err_trace delete
+    err_id delete
+    error delete
+   }
+  }
+ }
+ tls /run/dispatch/tls.crt /run/dispatch/tls.key
+ route {
+  header {
+   ?Cache-Control "private, no-store"
+   ?X-Content-Type-Options "nosniff"
+   ?Referrer-Policy "no-referrer"
+   ?Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+  }
+  @operator path /operator /operator/* /v1/operator /v1/operator/*
+  respond @operator 404
+  @host not host 127.0.0.1
+  respond @host 400
+  request_body {
+   max_size 16KB
+  }
+  @backend path /v1/* /health/*
+  handle @backend {
+   reverse_proxy https://api:18443 {
+    header_up Host {hostport}
+    transport http {
+     tls_server_name 127.0.0.1
+     tls_trust_pool file /run/dispatch/tls.crt
+    }
+   }
+  }
+  handle {
+   root * /srv
+   try_files {path} /index.html
+   file_server
+  }
+ }
+}

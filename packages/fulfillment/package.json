@@ -1,0 +1,10 @@
+{
+  "name": "@dispatch/fulfillment",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@dispatch/domain": "0.0.0",
+    "@dispatch/payments": "0.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "compose_sha256": "ac52d52a4c6d6a59bbc98c5e62114021576b6cf141d36bf6339fd3b16cb60ac1",
+  "migrations": {
+    "001_reviewed_schema.sql": "a7372b30ea9aaf87099333e8f3d2a5224c4ef687eaa087a70c4535120718b0b0",
+    "002_local_foundation.sql": "efbaf6b5d03e82e6e7ad33254aa204f58a636faae94c11501912a9169cf5d312",
+    "003_runtime_binding.sql": "06492640c3c3899909c9ac8207cebea80fc12586e6b5f24faecd41312df447fd",
+    "004_function_execute_acl.sql": "254828e7a8a1ceb168da6c910edb1c84a6efdc18d571a5abf6d9e8410e051955",
+    "005_payment_application.sql": "d8b7902e273de7a745bf5aca796e71df10c4294338087f1dd347f8858e56579b",
+    "006_buyer_confirmation.sql": "c00be17c3f1cb1da21c6286bd04c4c92d16ddd62546823a238f967dd7f922932",
+    "007_private_delivery.sql": "6ec4084ab41acc4ca911fd11c06f495dc9b45d4f58d4447f149ac9c75d740af9",
+    "008_operator_operations.sql": "fc3b6069ce20005dcdf4f782139878c51669031ac919d22710a6ab7376e56bfb",
+    "009_refund_invocation_authority.sql": "342e1558d843f20b9b929bc734bbd2f50945951e8f042a033f52aab2a053e886"
+  }
+}

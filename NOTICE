@@ -1,0 +1,10 @@
+Dispatch — local developer-preview source candidate
+
+Proposed public-core license: Apache-2.0, NOT YET OWNER-APPROVED.
+Copyright ownership and the final project attribution statement require owner
+confirmation before publication. Existing source and third-party notices are
+retained; no new contributor or authorship claim is made by this export.
+
+Third-party software retains its own license terms. See THIRD_PARTY_NOTICES.md,
+the dependency lockfiles, and licenses/third-party for collected installed-package
+license/notice texts. This NOTICE proposal does not replace those terms.

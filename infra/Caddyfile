@@ -1,0 +1,19 @@
+{
+ log {
+  output discard
+ }
+ admin off
+ auto_https off
+ persist_config off
+}
+http://:8080 {
+ # No access log, URI, body, credential or provider error telemetry.
+ @operator path /v1/operator /v1/operator/*
+ respond @operator 404
+ @host not host 127.0.0.1
+ respond @host 400
+ request_body {
+  max_size 16KB
+ }
+ reverse_proxy api:3000
+}

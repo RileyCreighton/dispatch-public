@@ -1,0 +1,32 @@
+{
+  "node": {
+    "tag": "24.21.0-bookworm-slim",
+    "index_digest": "sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20",
+    "platform": "linux/amd64",
+    "digest": "sha256:51b1100cc2a83d370c6a60952e3f2989c8a43159d0e38586e090f3b3326efefd",
+    "image": "node:24.21.0-bookworm-slim@sha256:51b1100cc2a83d370c6a60952e3f2989c8a43159d0e38586e090f3b3326efefd",
+    "source": "https://registry-1.docker.io/v2/library/node/manifests/24.21.0-bookworm-slim",
+    "verified_at": "2026-10-08T19:57:01.878426+00:00",
+    "image_boot": "not_run"
+  },
+  "postgres": {
+    "tag": "17.11-bookworm",
+    "index_digest": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+    "platform": "linux/amd64",
+    "digest": "sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df",
+    "image": "postgres:17.11-bookworm@sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df",
+    "source": "https://registry-1.docker.io/v2/library/postgres/manifests/17.11-bookworm",
+    "verified_at": "2026-10-08T19:57:02.263761+00:00",
+    "image_boot": "not_run"
+  },
+  "caddy": {
+    "tag": "2.11.7-alpine",
+    "index_digest": "sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f",
+    "platform": "linux/amd64",
+    "digest": "sha256:173b26306d711395accaeba8b67afcaad2a085ccb1e6bf26010bfe8c095a5229",
+    "image": "caddy:2.11.7-alpine@sha256:173b26306d711395accaeba8b67afcaad2a085ccb1e6bf26010bfe8c095a5229",
+    "source": "https://registry-1.docker.io/v2/library/caddy/manifests/2.11.7-alpine",
+    "verified_at": "2026-10-08T19:57:02.694056+00:00",
+    "image_boot": "not_run"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "dispatch",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "engines": {
+    "node": "24.21.0",
+    "npm": "11.19.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "lint": "node scripts/lint.mjs",
+    "format:check": "node scripts/lint.mjs --format",
+    "test": "node --test --test-isolation=none --test-reporter=tap tests/foundation/unit.test.mjs",
+    "test:db": "python3 scripts/test-postgres.py",
+    "start:api": "node dist/apps/api/src/main.js",
+    "start:worker": "node dist/apps/worker/src/main.js",
+    "migrate": "node dist/packages/db/src/migrate.js",
+    "test:payments": "python3 scripts/test-payment-postgres.py",
+    "test:payments:evm": "python3 scripts/test-payment-evm.py",
+    "build:web": "npm run build --workspace @dispatch/web",
+    "check:web": "npm run check --workspace @dispatch/web",
+    "test:buyer": "python3 scripts/test-buyer.py",
+    "test:fulfillment": "python3 scripts/test-fulfillment.py",
+    "demo:fulfillment": "python3 scripts/test-fulfillment.py --demo",
+    "test:operator": "python3 scripts/test-operator.py",
+    "operator:local": "node scripts/operator-local.mjs",
+    "demo:operator": "python3 scripts/test-operator.py --demo",
+    "test:all": "python3 scripts/test-all.py",
+    "test:containers": "python3 scripts/test-containers.py",
+    "demo": "sh scripts/demo.sh"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "@types/node": "24.19.1",
+    "@types/express": "5.0.6",
+    "@types/pg": "8.23.1",
+    "playwright": "1.64.0",
+    "@axe-core/playwright": "4.13.0"
+  }
+}

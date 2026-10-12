@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.local/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.dump
+*.log
+edge-web/
+
+# Generated local media and runtime capabilities never belong in source.
+*.mp4
+*.webm
+*.mov
+*.sqlite
+*.sqlite3
+*.p12
+*.pfx

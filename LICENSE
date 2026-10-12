@@ -1,0 +1,7 @@
+LICENSE DECISION PENDING — DEVELOPER PREVIEW
+
+Apache License 2.0 is proposed for the Dispatch public core, subject to explicit
+owner approval and third-party compatibility review. No approval is inferred.
+The exact proposed text is in licenses/Apache-2.0.proposed.txt. This file does not
+grant that license to Dispatch. Retain all existing third-party copyright and
+license notices. Public distribution is blocked until the owner records the decision.

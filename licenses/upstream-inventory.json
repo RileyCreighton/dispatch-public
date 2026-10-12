@@ -1,0 +1,284 @@
+[
+  {
+    "package": "@solana-program/system",
+    "version": "0.10.0",
+    "metadata_url": "https://registry.npmjs.org/%40solana-program%2Fsystem/0.10.0",
+    "repository": "git+https://github.com/solana-program/system.git",
+    "git_head": null,
+    "license": "Apache-2.0",
+    "status": "upstream_text_at_version_and_package_matched_source",
+    "source_tag": "js@v0.10.0",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/solana-program-system-0.10.0/LICENSE",
+        "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+        "url": "https://raw.githubusercontent.com/solana-program/system/11cfe704529b01abd7d7a8da59eb8e5e18863e1e/LICENSE"
+      }
+    ],
+    "source_commit": "11cfe704529b01abd7d7a8da59eb8e5e18863e1e",
+    "package_binding": {
+      "path": "clients/js/package.json",
+      "sha256": "3bef928e733a3ed337f2fcbc83f3f55b184597a71be1d295a45994845b0cec30",
+      "name": "@solana-program/system",
+      "version": "0.10.0"
+    }
+  },
+  {
+    "package": "@solana-program/token",
+    "version": "0.9.0",
+    "metadata_url": "https://registry.npmjs.org/%40solana-program%2Ftoken/0.9.0",
+    "repository": "git+https://github.com/solana-program/token.git",
+    "git_head": null,
+    "license": "Apache-2.0",
+    "status": "upstream_text_at_version_and_package_matched_source",
+    "source_tag": "js@v0.9.0",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/solana-program-token-0.9.0/LICENSE",
+        "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+        "url": "https://raw.githubusercontent.com/solana-program/token/873eed60a61eee1947fc8858891e38345cb5e783/LICENSE"
+      }
+    ],
+    "source_commit": "873eed60a61eee1947fc8858891e38345cb5e783",
+    "package_binding": {
+      "path": "clients/js/package.json",
+      "sha256": "cf1c8f62bfa2ac030e1b0e9b875c7a0a28eb01617a6a12169274fdc9dc4dc805",
+      "name": "@solana-program/token",
+      "version": "0.9.0"
+    }
+  },
+  {
+    "package": "@coinbase/x402",
+    "version": "2.1.0",
+    "metadata_url": "https://registry.npmjs.org/%40coinbase%2Fx402/2.1.0",
+    "repository": "git+https://github.com/coinbase/x402.git",
+    "git_head": null,
+    "license": "Apache-2.0",
+    "status": "upstream_text_at_registry_provenance_source",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/coinbase-x402-2.1.0/LICENSE",
+        "sha256": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+        "url": "https://raw.githubusercontent.com/coinbase/x402/5a36181b64699e360897626296fd6fc652102183/LICENSE"
+      }
+    ],
+    "source_commit": "5a36181b64699e360897626296fd6fc652102183",
+    "provenance": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@coinbase%2fx402@2.1.0",
+      "sha256": "c977437f3117f6157e8d2c9af4e49c6f49040b1f05cdc5855ad0f6b99678b269",
+      "package_integrity": "sha512-aKeM+cz//+FjzPVu/zgz7830x0KLtKarwCyxoeC71QgCn+Xcf0NhFpn3Qyw0H496y5YOuR/IQ67gP8DZ/hXFqQ==",
+      "source_commit": "5a36181b64699e360897626296fd6fc652102183",
+      "subject_digest_matches_registry": true,
+      "signature_verification": "npm audit signatures passed for the installed locked graph; source license text fetched from the attested commit"
+    }
+  },
+  {
+    "package": "@rolldown/binding-linux-x64-gnu",
+    "version": "1.2.13",
+    "metadata_url": "https://registry.npmjs.org/%40rolldown%2Fbinding-linux-x64-gnu/1.2.13",
+    "repository": "git+https://github.com/rolldown/rolldown.git",
+    "git_head": null,
+    "license": "MIT",
+    "status": "upstream_text_at_registry_provenance_source",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/rolldown-binding-linux-x64-gnu-1.2.13/LICENSE",
+        "sha256": "23ecfff35a5a2e80d92142f75228912c3b1abc4b5a8337a821ff4397e2f9f734",
+        "url": "https://raw.githubusercontent.com/rolldown/rolldown/f7de35f45bcd4cb8e4b6d8d11e74fbfb20b03127/LICENSE"
+      }
+    ],
+    "source_commit": "f7de35f45bcd4cb8e4b6d8d11e74fbfb20b03127",
+    "provenance": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@rolldown%2fbinding-linux-x64-gnu@1.2.13",
+      "sha256": "b99a723cec6e8e9dc6a9e21bc23866d520a79555067bbdb674e60debc9c1e005",
+      "package_integrity": "sha512-J4cm80Pc6wEwV5AZ42o62sIQgDk+Y7R2s646jIwuvO+4V46QB58N4vVuMPWCBaNgursXLpmUWJV//WQAkPvHBQ==",
+      "subject_digest_matches_registry": true,
+      "source_commit": "f7de35f45bcd4cb8e4b6d8d11e74fbfb20b03127",
+      "signature_verification": "npm audit signatures passed for the corresponding installed locked graph"
+    }
+  },
+  {
+    "package": "@x402/core",
+    "version": "2.28.0",
+    "metadata_url": "https://registry.npmjs.org/%40x402%2Fcore/2.28.0",
+    "repository": "https://github.com/x402-foundation/x402",
+    "git_head": null,
+    "license": "Apache-2.0",
+    "status": "upstream_text_at_registry_provenance_source",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/x402-core-2.28.0/LICENSE",
+        "sha256": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+        "url": "https://raw.githubusercontent.com/x402-foundation/x402/6b6ee91fee027b540faabcb25774e73851006c3b/LICENSE"
+      }
+    ],
+    "source_commit": "6b6ee91fee027b540faabcb25774e73851006c3b",
+    "provenance": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@x402%2fcore@2.28.0",
+      "sha256": "2f65d152bc720a5d0840a953294ad6693503436c795c29fcde04bcd03e3f7feb",
+      "package_integrity": "sha512-Da/7zKxCKqpBoB4Msc9tFgkAv7tJTD8nG+DSSm+QdXAyJS4PQsmgVSKe17rDJTtlu0pwNbLcOje6MyQ6kaDkig==",
+      "source_commit": "6b6ee91fee027b540faabcb25774e73851006c3b",
+      "subject_digest_matches_registry": true,
+      "signature_verification": "npm audit signatures passed for the installed locked graph; source license text fetched from the attested commit"
+    }
+  },
+  {
+    "package": "@x402/evm",
+    "version": "2.28.0",
+    "metadata_url": "https://registry.npmjs.org/%40x402%2Fevm/2.28.0",
+    "repository": "https://github.com/x402-foundation/x402",
+    "git_head": null,
+    "license": "Apache-2.0",
+    "status": "upstream_text_at_registry_provenance_source",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/x402-evm-2.28.0/LICENSE",
+        "sha256": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+        "url": "https://raw.githubusercontent.com/x402-foundation/x402/6b6ee91fee027b540faabcb25774e73851006c3b/LICENSE"
+      }
+    ],
+    "source_commit": "6b6ee91fee027b540faabcb25774e73851006c3b",
+    "provenance": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@x402%2fevm@2.28.0",
+      "sha256": "0c6caeb3ddf2674ac312635a65af32337e8f066fe9d72e76fda46f10e4e5b626",
+      "package_integrity": "sha512-BZuoaCKMoPQQuMTa4oibvoyI06WdCpgrzgdicUu8d+5NBMAfWb6LAmSQf1KkeiS8C+25/+2JGB4cHSL0VLGnSA==",
+      "source_commit": "6b6ee91fee027b540faabcb25774e73851006c3b",
+      "subject_digest_matches_registry": true,
+      "signature_verification": "npm audit signatures passed for the installed locked graph; source license text fetched from the attested commit"
+    }
+  },
+  {
+    "package": "@x402/fetch",
+    "version": "2.28.0",
+    "metadata_url": "https://registry.npmjs.org/%40x402%2Ffetch/2.28.0",
+    "repository": "https://github.com/x402-foundation/x402",
+    "git_head": null,
+    "license": "Apache-2.0",
+    "status": "upstream_text_at_registry_provenance_source",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/x402-fetch-2.28.0/LICENSE",
+        "sha256": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+        "url": "https://raw.githubusercontent.com/x402-foundation/x402/6b6ee91fee027b540faabcb25774e73851006c3b/LICENSE"
+      }
+    ],
+    "source_commit": "6b6ee91fee027b540faabcb25774e73851006c3b",
+    "provenance": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@x402%2ffetch@2.28.0",
+      "sha256": "571e31ba27d8139f3b45cb9e74f761c8246ce6a0764012d5f6e8a8654729f106",
+      "package_integrity": "sha512-kF5IjZIz/izg2TD/Zav+SVj0jtC0zBDfE7WcKCnMZWIsZcLCyL2GgvwXCn7CCSsNjpQ/z3Rz4OqTCA4AaeKySQ==",
+      "source_commit": "6b6ee91fee027b540faabcb25774e73851006c3b",
+      "subject_digest_matches_registry": true,
+      "signature_verification": "npm audit signatures passed for the installed locked graph; source license text fetched from the attested commit"
+    }
+  },
+  {
+    "package": "agent-base",
+    "version": "6.0.2",
+    "metadata_url": "https://registry.npmjs.org/agent-base/6.0.2",
+    "repository": "git://github.com/TooTallNate/node-agent-base.git",
+    "git_head": "c4b8ea2e1a11bae023bb09b708050a50418204e9",
+    "license": "MIT",
+    "status": "upstream_text_at_npm_git_head",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/agent-base-6.0.2/LICENSE-excerpt.md",
+        "sha256": "9392da8d1d2ccb224d60025fee4d6223ae0b863469fcd8c6b9461145723cf1c4",
+        "url": "https://raw.githubusercontent.com/TooTallNate/node-agent-base/c4b8ea2e1a11bae023bb09b708050a50418204e9/README.md"
+      }
+    ],
+    "source_commit": "c4b8ea2e1a11bae023bb09b708050a50418204e9"
+  },
+  {
+    "package": "https-proxy-agent",
+    "version": "5.0.1",
+    "metadata_url": "https://registry.npmjs.org/https-proxy-agent/5.0.1",
+    "repository": "git://github.com/TooTallNate/node-https-proxy-agent.git",
+    "git_head": "d0d80cc0482f20495aa8595f802e1a9f3b1b3409",
+    "license": "MIT",
+    "status": "upstream_text_at_npm_git_head",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/https-proxy-agent-5.0.1/LICENSE-excerpt.md",
+        "sha256": "58f4074efa400c8397add18c6561d0a17e4721e24bfd1b4d1e8ca764a8cb3eca",
+        "url": "https://raw.githubusercontent.com/TooTallNate/node-https-proxy-agent/d0d80cc0482f20495aa8595f802e1a9f3b1b3409/README.md"
+      }
+    ],
+    "source_commit": "d0d80cc0482f20495aa8595f802e1a9f3b1b3409"
+  },
+  {
+    "package": "pg-types",
+    "version": "2.2.0",
+    "metadata_url": "https://registry.npmjs.org/pg-types/2.2.0",
+    "repository": "git://github.com/brianc/node-pg-types.git",
+    "git_head": "d9d9dfb87eb50914043cbc178c301b7dd3b0c50d",
+    "license": "MIT",
+    "status": "upstream_text_at_npm_git_head",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/pg-types-2.2.0/LICENSE-excerpt.md",
+        "sha256": "c565667e0560bba6502cda29fd9d461fd3acaf9dac24dda4d2758ce0f8b720cd",
+        "url": "https://raw.githubusercontent.com/brianc/node-pg-types/d9d9dfb87eb50914043cbc178c301b7dd3b0c50d/README.md",
+        "extraction": "Verbatim license section through end of original README"
+      }
+    ],
+    "source_commit": "d9d9dfb87eb50914043cbc178c301b7dd3b0c50d"
+  },
+  {
+    "package": "pgpass",
+    "version": "1.0.5",
+    "metadata_url": "https://registry.npmjs.org/pgpass/1.0.5",
+    "repository": "git+https://github.com/hoegaarden/pgpass.git",
+    "git_head": "4230ed5e417ba6044ea7eb80b7c33db9ec301398",
+    "license": "MIT",
+    "status": "upstream_text_at_npm_git_head",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/pgpass-1.0.5/LICENSE-excerpt.md",
+        "sha256": "f660a02f22de943c8c28a93791e8571c67f9088be93226fd526842b586cb4db4",
+        "url": "https://raw.githubusercontent.com/hoegaarden/pgpass/4230ed5e417ba6044ea7eb80b7c33db9ec301398/README.md",
+        "extraction": "Verbatim license section through end of original README"
+      }
+    ],
+    "source_commit": "4230ed5e417ba6044ea7eb80b7c33db9ec301398"
+  },
+  {
+    "package": "react-remove-scroll-bar",
+    "version": "2.3.8",
+    "metadata_url": "https://registry.npmjs.org/react-remove-scroll-bar/2.3.8",
+    "repository": "git+https://github.com/theKashey/react-remove-scroll-bar.git",
+    "git_head": "b3b1287aad81def2e2ae707274b74531b61ddbaf",
+    "license": "MIT",
+    "status": "exact_upstream_text_unavailable"
+  },
+  {
+    "package": "@foundry-rs/anvil-linux-amd64",
+    "version": "1.7.1",
+    "metadata_url": "https://registry.npmjs.org/%40foundry-rs%2Fanvil-linux-amd64/1.7.1",
+    "repository": "git+https://github.com/foundry-rs/foundry.git",
+    "git_head": null,
+    "license": "MIT OR Apache-2.0",
+    "status": "upstream_text_at_registry_provenance_source",
+    "notice_files": [
+      {
+        "file": "licenses/upstream/foundry-rs-anvil-linux-amd64-1.7.1/LICENSE-MIT",
+        "sha256": "a0ccf03ff91b5d7e23800026051ddc61fefdbd6a832b4ad253d2aa9d647c78e3",
+        "url": "https://raw.githubusercontent.com/foundry-rs/foundry/9ddd3234a131f09923866cf8496816b7928c568c/LICENSE-MIT"
+      },
+      {
+        "file": "licenses/upstream/foundry-rs-anvil-linux-amd64-1.7.1/LICENSE-APACHE",
+        "sha256": "5c7f173199fd7fb3cc83d86d24f3541e8ae0cb8c16e912ca519ed6a1435bd8f3",
+        "url": "https://raw.githubusercontent.com/foundry-rs/foundry/9ddd3234a131f09923866cf8496816b7928c568c/LICENSE-APACHE"
+      }
+    ],
+    "source_commit": "9ddd3234a131f09923866cf8496816b7928c568c",
+    "provenance": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@foundry-rs%2fanvil-linux-amd64@1.7.1",
+      "sha256": "73138b75efc449b49eeef8699acc33863ff920f8fd9659d8bd8ca1ccee7eab99",
+      "package_integrity": "sha512-+XmShybEaxfCrr0OUUZwYEy2OnYZt5pHH9TzBtLv3+VrK0O/ANuNSVEahqNhKHlgX7GRJ59383ofNhxkRWIYTg==",
+      "subject_digest_matches_registry": true,
+      "source_commit": "9ddd3234a131f09923866cf8496816b7928c568c",
+      "signature_verification": "npm audit signatures passed for the corresponding installed locked graph"
+    }
+  }
+]

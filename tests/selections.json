@@ -1,0 +1,337 @@
+[
+  {
+    "name": "agent-concurrency",
+    "argv": [
+      "python3",
+      "tests/regressions/agent-concurrency.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "boundaries",
+    "argv": [
+      "python3",
+      "tests/regressions/independent-probes-corrected.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "buyer",
+    "argv": [
+      "python3",
+      "tests/regressions/buyer.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "canonical",
+    "argv": [
+      "python3",
+      "tests/regressions/canonical-payment.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "check",
+    "argv": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "check-web",
+    "argv": [
+      "npm",
+      "run",
+      "check:web"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "contention",
+    "argv": [
+      "python3",
+      "tests/regressions/agent-regressions.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "contention-negative",
+    "argv": [
+      "python3",
+      "tests/regressions/contention.py"
+    ],
+    "environment": {
+      "DISPATCH_CONTENTION_DIAGNOSTIC_EXIT": "before-ready"
+    },
+    "expected_exit": 1
+  },
+  {
+    "name": "corrections",
+    "argv": [
+      "python3",
+      "tests/regressions/corrections-restored.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "demo",
+    "argv": [
+      "python3",
+      "scripts/test-operator.py",
+      "--demo-smoke"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "evm",
+    "argv": [
+      "python3",
+      "tests/regressions/evm.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "format",
+    "argv": [
+      "npm",
+      "run",
+      "format:check"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "foundation",
+    "argv": [
+      "python3",
+      "tests/regressions/foundation.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "fulfillment",
+    "argv": [
+      "python3",
+      "tests/regressions/fulfillment.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "journal",
+    "argv": [
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/regressions/journal-process-verified.test.mjs"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "lint",
+    "argv": [
+      "npm",
+      "run",
+      "lint"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "locks",
+    "argv": [
+      "python3",
+      "tests/regressions/independent-locks.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "matrix",
+    "argv": [
+      "python3",
+      "tests/regressions/test.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "migration",
+    "argv": [
+      "python3",
+      "tests/regressions/operator-migration.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "operator",
+    "argv": [
+      "python3",
+      "scripts/test-operator.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "original-agent",
+    "argv": [
+      "python3",
+      "tests/regressions/original-agent-after.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "original-queue",
+    "argv": [
+      "python3",
+      "tests/regressions/original-queue-after.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "original-review",
+    "argv": [
+      "python3",
+      "tests/regressions/independent.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "payment-unit",
+    "argv": [
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/payment/unit.test.mjs"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "permanent",
+    "argv": [
+      "python3",
+      "tests/regressions/test.py"
+    ],
+    "environment": {
+      "DISPATCH_CORRECTION_TEST": "tests/operator/independent.test.mjs"
+    },
+    "expected_exit": 0
+  },
+  {
+    "name": "quarantine",
+    "argv": [
+      "python3",
+      "tests/regressions/quarantine.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "queue-regressions",
+    "argv": [
+      "python3",
+      "tests/regressions/queue-regressions.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "races",
+    "argv": [
+      "python3",
+      "tests/regressions/races.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "recovery",
+    "argv": [
+      "python3",
+      "tests/regressions/recovery-locks-serialized.py",
+      "recovery-locks"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "recovery-pause",
+    "argv": [
+      "python3",
+      "tests/regressions/recovery-causal.py",
+      "recovery-locks"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "reorg",
+    "argv": [
+      "python3",
+      "tests/regressions/reorg.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "support",
+    "argv": [
+      "python3",
+      "tests/regressions/support-regression.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "unit",
+    "argv": [
+      "npm",
+      "test"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "transaction-lifecycle",
+    "argv": [
+      "python3",
+      "scripts/test-transaction-lifecycle.py"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  },
+  {
+    "name": "fixture-signer",
+    "argv": [
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/foundation/fixture-signer.test.mjs"
+    ],
+    "environment": {},
+    "expected_exit": 0
+  }
+]

@@ -1,0 +1,10 @@
+import {Pool} from 'pg';
+import {DeliveryStore} from '../../dist/packages/db/src/delivery.js';
+import {digest} from '../../dist/packages/db/src/commerce.js';
+const base=process.env.DISPATCH_DB_HOST;
+if(!/^\/tmp\/dispatch-b4-/.test(base))throw Error('disposable_only');
+const pool=new Pool({host:base,port:55442,database:'dispatch',user:'local_worker'});
+const store=new DeliveryStore(pool,new Map([['reference',digest('https://127.0.0.1:18444/dispatch/v1/events')]]));
+const lease=await store.claim(process.argv[2]);process.send('claimed');
+await store.entitlement(lease);process.send('committed');
+await new Promise(()=>{});

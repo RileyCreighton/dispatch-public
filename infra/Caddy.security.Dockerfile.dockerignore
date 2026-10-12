@@ -1,0 +1,7 @@
+**
+!infra/
+!infra/caddy-security/
+!infra/caddy-security/go.mod
+!infra/caddy-security/go.sum
+!edge-web/
+!edge-web/**
